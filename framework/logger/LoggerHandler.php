@@ -1,6 +1,8 @@
 <?php
+
 namespace regenix\logger;
 
-interface LoggerHandler {
+interface LoggerHandler
+{
     public function writeLog($level, array $args);
 }

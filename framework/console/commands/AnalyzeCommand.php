@@ -1,4 +1,5 @@
 <?php
+
 namespace regenix\console\commands;
 
 use Symfony\Component\Console\Input\InputInterface;
@@ -19,9 +20,11 @@ use regenix\lang\SystemCache;
 use regenix\lang\types\Callback;
 use regenix\modules\Module;
 
-class AnalyzeCommand extends RegenixCommand {
+class AnalyzeCommand extends RegenixCommand
+{
 
-    protected function configure() {
+    protected function configure()
+    {
         $this
             ->setName('analyze')
             ->setDescription('Analyzes all PHP sources for finding hidden errors')
@@ -37,9 +40,10 @@ class AnalyzeCommand extends RegenixCommand {
             );
     }
 
-    protected function execute(InputInterface $input, OutputInterface $output){
+    protected function execute(InputInterface $input, OutputInterface $output)
+    {
 
-        if ($input->getOption('framework')){
+        if ($input->getOption('framework')) {
             SystemCache::removeAll();
             ClassScanner::scan(false);
             $analyzer = new AnalyzeManager(Regenix::getFrameworkPath());
@@ -64,20 +68,20 @@ class AnalyzeCommand extends RegenixCommand {
 
         $errors = array();
         $analyzer->analyze($input->getOption('incremental'), true,
-            new Callback(function(AnalyzeException $e) use ($output, &$errors) {
-                    $output->writeln(String::format(
-                        "       [fail] %s (line %s) \n" .
-                        "           %s",
-                        get_class($e), $e->getSourceLine(), $e->getMessage()
-                    ));
-                    $output->writeln('');
-                    $errors[] = $e;
+            new Callback(function (AnalyzeException $e) use ($output, &$errors) {
+                $output->writeln(String::format(
+                    "       [fail] %s (line %s) \n" .
+                    "           %s",
+                    get_class($e), $e->getSourceLine(), $e->getMessage()
+                ));
+                $output->writeln('');
+                $errors[] = $e;
 
             }),
-            new Callback(function(File $file) use ($output) {
-                    $path = $file->getPath();
-                    $path = str_replace(ROOT, '', $path);
-                    $output->writeln('    -> ' . $path);
+            new Callback(function (File $file) use ($output) {
+                $path = $file->getPath();
+                $path = str_replace(ROOT, '', $path);
+                $output->writeln('    -> ' . $path);
             })
         );
 

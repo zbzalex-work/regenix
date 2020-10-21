@@ -1,4 +1,5 @@
 <?php
+
 namespace regenix\console\commands;
 
 use Symfony\Component\Console\Input\InputInterface;
@@ -12,9 +13,11 @@ use regenix\modules\Module;
 use regenix\test\Tester;
 use regenix\test\UnitTest;
 
-class TestCommand extends RegenixCommand {
+class TestCommand extends RegenixCommand
+{
 
-    protected function configure() {
+    protected function configure()
+    {
         $this
             ->setName('test')
             ->setDescription('Runs tests of an app or module, for module: test --module=name~0.5')
@@ -25,10 +28,11 @@ class TestCommand extends RegenixCommand {
             );
     }
 
-    protected function execute(InputInterface $input, OutputInterface $output){
+    protected function execute(InputInterface $input, OutputInterface $output)
+    {
         $console = $this->getApplication();
 
-        if ($input->getOption('module')){
+        if ($input->getOption('module')) {
             $module = $input->getOption('module');
             $module = $module[0];
             Tester::startTesting(null, $module);
@@ -38,21 +42,21 @@ class TestCommand extends RegenixCommand {
             $this->checkApplicationLoaded();
             $console->app->register(false);
             $this->writeln('Start "%s" testing ...', $console->app->getName());
-            Tester::startTesting(null, null, function(UnitTest $test){
+            Tester::startTesting(null, null, function (UnitTest $test) {
                 $this->writeln('    - %s [%s]', get_class($test), $test->isOk() ? 'ok' : 'fail');
             });
         }
         $this->writeln();
 
         $result = Tester::getResults();
-        foreach($result['tests'] as $name => $test){
+        foreach ($result['tests'] as $name => $test) {
             $shortName = substr($name, strpos($name, 'tests.') + 6);
 
             $this->writeln('    - [%s] %s', $test['result'] ? 'ok' : 'fail', $shortName);
-            if (!$test['result']){
-                foreach($test['log'] as $method => $logs){
-                    foreach($logs as $log){
-                        if (!$log['result']){
+            if (!$test['result']) {
+                foreach ($test['log'] as $method => $logs) {
+                    foreach ($logs as $log) {
+                        if (!$log['result']) {
                             $this->writeln('        * %s, %s, line %s (%s)', $method,
                                 $log['method'], $log['line'], $log['message'] ? $log['message'] : '...');
                         }

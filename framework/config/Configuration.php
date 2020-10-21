@@ -7,7 +7,8 @@ use regenix\lang\StrictObject;
 use regenix\lang\String;
 use regenix\lang\File;
 
-class Configuration extends StrictObject {
+class Configuration extends StrictObject
+{
 
     const type = __CLASS__;
 
@@ -15,7 +16,7 @@ class Configuration extends StrictObject {
      * @var File
      */
     protected $file;
-    
+
     /** @var File[] */
     protected $files;
 
@@ -23,47 +24,53 @@ class Configuration extends StrictObject {
     protected $data = array();
 
 
-    protected function loadData(){
+    protected function loadData()
+    {
         //
         throw new \Exception(String::format('Can`t invoke loadData() in abstract configuration'));
     }
 
     /**
-     * 
-     * @param \regenix\lang\File $file|array files
+     *
+     * @param \regenix\lang\File $file |array files
+     * @throws FileIOException
      */
-    public function __construct($file = null){
-        if (is_array($file)){
+    public function __construct($file = null)
+    {
+        if (is_array($file)) {
             $this->file = null;
             $this->files = $file;
             if (count($file) > 0)
                 $this->load();
-            
+
         } else {
-            if ($file !== null){
+            if ($file !== null) {
                 $this->setFile($file);
                 $this->load();
             }
         }
     }
 
-    public function setFile(File $file){
+    public function setFile(File $file)
+    {
         $this->file = $file;
     }
 
-    public function load(){
+    public function load()
+    {
         $this->clear();
-        if ( $this->files ){
+        if ($this->files) {
             $this->loadData();
         } else {
-            if ($this->file == null/* || !$this->file->canRead() #fix small bug, check it! */){
-                throw new FileIOException( $this->file );
+            if ($this->file == null/* || !$this->file->canRead() #fix small bug, check it! */) {
+                throw new FileIOException($this->file);
             } else
                 $this->loadData();
         }
     }
 
-    public function clear(){
+    public function clear()
+    {
         $this->data = array();
     }
 }

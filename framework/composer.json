@@ -1,0 +1,7 @@
+{
+    "name": "regenix/framework",
+    "require": {
+        "symfony/console": "^3.4"
+    },
+    "minimum-stability": "stable"
+}

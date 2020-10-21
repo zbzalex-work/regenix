@@ -1,4 +1,5 @@
 <?php
+
 namespace regenix\i18n;
 
 use regenix\core\Application;
@@ -11,7 +12,8 @@ use regenix\mvc\http\RequestQuery;
 use regenix\mvc\http\session\Session;
 use regenix\mvc\route\Router;
 
-class I18n implements IClassInitialization {
+class I18n implements IClassInitialization
+{
 
     const type = __CLASS__;
 
@@ -19,37 +21,45 @@ class I18n implements IClassInitialization {
     private static $lang = 'default';
 
     private static $detectType = 'none';
-    private static $detectArg  = '_lang';
+    private static $detectArg = '_lang';
 
-    public static function setMessages($lang, $messages){
+    public static function setMessages($lang, $messages)
+    {
         self::$messages[$lang] = $messages;
     }
 
-    public static function getMessages($lang){
-        if (!self::$messages[$lang]){
+    public static function getMessages($lang)
+    {
+        if (!self::$messages[$lang]) {
             self::$loader->loadLang($lang);
         }
         return self::$messages[$lang];
     }
 
-    public static function setLang($lang, $save = true){
+    public static function setLang($lang, $save = true)
+    {
         self::$lang = str_replace(array(' ', '-'), '_', strtolower($lang));
 
-        if ( $save ){
-            switch(self::$detectType){
-                case 'session': {
-                    $session = DI::getInstance(Session::type);
-                    $session->put( self::$detectArg, self::$lang );
-                } break;
-                case 'cookie': {
-                    $cookie = Cookie::getInstance();
-                    $cookie->put( self::$detectArg, self::$lang, 1000 * 1000 * 1000 );
-                } break;
+        if ($save) {
+            switch (self::$detectType) {
+                case 'session':
+                    {
+                        $session = DI::getInstance(Session::type);
+                        $session->put(self::$detectArg, self::$lang);
+                    }
+                    break;
+                case 'cookie':
+                    {
+                        $cookie = Cookie::getInstance();
+                        $cookie->put(self::$detectArg, self::$lang, 1000 * 1000 * 1000);
+                    }
+                    break;
             }
         }
     }
 
-    public static function getLang(){
+    public static function getLang()
+    {
         return self::$lang;
     }
 
@@ -57,8 +67,9 @@ class I18n implements IClassInitialization {
      * @param $lang
      * @return mixed
      */
-    public static function availLang($lang = null){
-        if ( $lang === null ){
+    public static function availLang($lang = null)
+    {
+        if ($lang === null) {
             $lang = self::detectLang(DI::getInstance(Request::type));
             return !$lang || self::availLang($lang);
         } else
@@ -71,7 +82,8 @@ class I18n implements IClassInitialization {
      * @param string $lang
      * @return string
      */
-    public static function getLangStamp($lang){
+    public static function getLangStamp($lang)
+    {
         return md5(self::$loader->getLastUpdate($lang));
     }
 
@@ -81,8 +93,9 @@ class I18n implements IClassInitialization {
      * @param array $args
      * @return string
      */
-    public static function format($message, array $args){
-        $keys = array_map(function($key){
+    public static function format($message, array $args)
+    {
+        $keys = array_map(function ($key) {
             return '{' . $key . '}';
         }, array_keys($args));
 
@@ -94,13 +107,14 @@ class I18n implements IClassInitialization {
      * @param string|array $args
      * @return string
      */
-    public static function get($message, $args = ''){
+    public static function get($message, $args = '')
+    {
         $lang = self::$lang;
 
-        if ( !self::$messages[$lang] )
+        if (!self::$messages[$lang])
             self::$loader->loadLang($lang);
 
-        if ( $tmp = self::$messages[ $lang ][$message] )
+        if ($tmp = self::$messages[$lang][$message])
             $message = $tmp;
 
         if (is_array($args))
@@ -111,7 +125,9 @@ class I18n implements IClassInitialization {
 
     /** @var I18nLoader */
     private static $loader;
-    public static function setLoader(I18nLoader $loader){
+
+    public static function setLoader(I18nLoader $loader)
+    {
         self::$loader = $loader;
     }
 
@@ -119,35 +135,47 @@ class I18n implements IClassInitialization {
      * @param \regenix\mvc\http\Request $request
      * @return bool|scalar|null|string
      */
-    public static function detectLang(Request $request){
+    public static function detectLang(Request $request)
+    {
         $app = Regenix::app();
 
         $lang = false;
-        switch(self::$detectType){
-            case 'headers': {
-                $languages = $request->getLanguages();
-                foreach($languages as $lang){
-                    if ( self::availLang($lang) ){
-                        return $lang;
+        switch (self::$detectType) {
+            case 'headers':
+                {
+                    $languages = $request->getLanguages();
+                    foreach ($languages as $lang) {
+                        if (self::availLang($lang)) {
+                            return $lang;
+                        }
                     }
                 }
-            } break;
-            case 'route': {
-                $lang = $app->router->args[self::$detectArg];
-            } break;
-            case 'get': {
-                $query = DI::getInstance(RequestQuery::type);
-                $lang = $query->getString(self::$detectArg);
-            } break;
-            case 'session': {
-                $session = DI::getInstance(Session::type);
-                $lang = $session->get(self::$detectArg);
-            } break;
-            case 'cookie': {
-                $cookie = Cookie::getInstance();
-                $lang = $cookie->get(self::$detectArg, $app->config->getString('i18n.lang', 'default'));
-            } break;
-            default: {
+                break;
+            case 'route':
+                {
+                    $lang = $app->router->args[self::$detectArg];
+                }
+                break;
+            case 'get':
+                {
+                    $query = DI::getInstance(RequestQuery::type);
+                    $lang = $query->getString(self::$detectArg);
+                }
+                break;
+            case 'session':
+                {
+                    $session = DI::getInstance(Session::type);
+                    $lang = $session->get(self::$detectArg);
+                }
+                break;
+            case 'cookie':
+                {
+                    $cookie = Cookie::getInstance();
+                    $lang = $cookie->get(self::$detectArg, $app->config->getString('i18n.lang', 'default'));
+                }
+                break;
+            default:
+            {
                 $lang = $app->config->getString('i18n.lang', 'default');
             }
         }
@@ -158,18 +186,19 @@ class I18n implements IClassInitialization {
         return $lang;
     }
 
-    public static function initialize() {
+    public static function initialize()
+    {
         self::setLoader(new I18nDefaultLoader());
 
         $app = Regenix::app();
         $request = DI::getInstance(Request::type);
 
-        if ( $request ){
+        if ($request) {
             $type = $app->config->getString('i18n.detect.type', 'none');
-            $arg  = $app->config->getString('i18n.detect.arg', '_lang');
+            $arg = $app->config->getString('i18n.detect.arg', '_lang');
 
             self::$detectType = $type;
-            self::$detectArg  = $arg;
+            self::$detectArg = $arg;
 
             $lang = self::detectLang($request);
 

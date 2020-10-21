@@ -1,7 +1,8 @@
 <?php
+
 namespace regenix\console;
 
-    use regenix\core\Regenix;
+use regenix\core\Regenix;
 
 {
     $root = dirname(dirname(__DIR__));
@@ -12,7 +13,7 @@ namespace regenix\console;
     $console = new RegenixConsole();
     try {
         $console->run();
-    } catch (\Exception $e){
+    } catch (\Exception $e) {
         echo "\n    Exception error: " . str_replace('\\', '.', get_class($e)) . "\n";
         echo "\n        message: " . $e->getMessage();
         echo "\n        file: " . $e->getFile();

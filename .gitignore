@@ -7,3 +7,4 @@ log/
 /tools/
 /apps/.ide
 /logs
+/framework/vendor/

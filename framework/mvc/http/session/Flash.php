@@ -1,4 +1,5 @@
 <?php
+
 namespace regenix\mvc\http\session;
 
 use regenix\core\Regenix;
@@ -9,7 +10,8 @@ use regenix\lang\StrictObject;
 use regenix\lang\String;
 
 class Flash extends StrictObject
-    implements Singleton, Injectable {
+    implements Singleton, Injectable
+{
 
     const type = __CLASS__;
 
@@ -19,7 +21,8 @@ class Flash extends StrictObject
     /**
      * @param Session $session
      */
-    public function __construct(Session $session){
+    public function __construct(Session $session)
+    {
         $this->session = $session;
     }
 
@@ -27,8 +30,9 @@ class Flash extends StrictObject
      * @param null $value
      * @return $this|scalar|null
      */
-    public function success($value = null){
-        if ( $value === null )
+    public function success($value = null)
+    {
+        if ($value === null)
             return $this->get("success");
         else
             return $this->put("success", $value);
@@ -38,8 +42,9 @@ class Flash extends StrictObject
      * @param null $value
      * @return $this|scalar|null
      */
-    public function error($value = null){
-        if ( $value === null )
+    public function error($value = null)
+    {
+        if ($value === null)
             return $this->get("error");
         else
             return $this->put("error", $value);
@@ -49,8 +54,9 @@ class Flash extends StrictObject
      * @param null $value
      * @return $this|scalar|null
      */
-    public function warning($value = null){
-        if ( $value === null )
+    public function warning($value = null)
+    {
+        if ($value === null)
             return $this->get("warning");
         else
             return $this->put("warning", $value);
@@ -60,10 +66,11 @@ class Flash extends StrictObject
      * @param null $value
      * @return $this|scalar|null
      */
-    public function debug($value = null){
+    public function debug($value = null)
+    {
         $app = Regenix::app();
-        if ($app && $app->isDev()){
-            if ( $value === null )
+        if ($app && $app->isDev()) {
+            if ($value === null)
                 return $this->get("debug");
             else
                 return $this->put("debug", $value);
@@ -75,7 +82,8 @@ class Flash extends StrictObject
      * @param mixed $value
      * @return $this
      */
-    public function put($name, $value){
+    public function put($name, $value)
+    {
         $this->session->put($name . '$$flash', base64_encode(serialize($value)));
         $this->session->put($name . '$$flash_i', 1);
         return $this;
@@ -87,11 +95,12 @@ class Flash extends StrictObject
      * @param int $inc
      * @return $this
      */
-    public function keep($name, $inc = 1){
+    public function keep($name, $inc = 1)
+    {
         $i = $this->session->get($name . '$$flash_i');
-        if ( $i !== null ){
+        if ($i !== null) {
             $i = (int)$i + $inc;
-            if ( $i < 0 ){
+            if ($i < 0) {
                 $this->remove($name);
             } else {
                 $this->session->put($name . '$$flash_i', $i);
@@ -100,21 +109,24 @@ class Flash extends StrictObject
         return $this;
     }
 
-    public function touch($name){
+    public function touch($name)
+    {
         return $this->keep($name, -1);
     }
 
-    public function touchAll(){
+    public function touchAll()
+    {
         $all = $this->session->all();
-        foreach($all as $key => $value){
-            if ( String::endsWith($key, '$$flash') ){
+        foreach ($all as $key => $value) {
+            if (String::endsWith($key, '$$flash')) {
                 $this->touch(substr($key, 0, -7));
             }
         }
         return $this;
     }
 
-    public function get($name, $def = null){
+    public function get($name, $def = null)
+    {
         $p = $this->session->get($name . '$$flash', $def);
         if (!$p)
             return $p;
@@ -127,7 +139,8 @@ class Flash extends StrictObject
      * @param string $name
      * @return bool
      */
-    public function has($name){
+    public function has($name)
+    {
         return $this->session->has($name . '$$flash');
     }
 
@@ -136,7 +149,8 @@ class Flash extends StrictObject
      * @param $name
      * @return $this
      */
-    public function remove($name){
+    public function remove($name)
+    {
         $this->session->remove($name . '$$flash');
         $this->session->remove($name . '$$flash_i');
         return $this;
@@ -145,7 +159,8 @@ class Flash extends StrictObject
     /**
      * @return Flash
      */
-    public static function getInstance() {
+    public static function getInstance()
+    {
         return DI::getInstance(__CLASS__);
     }
 }

@@ -1,4 +1,5 @@
 <?php
+
 namespace regenix\console\commands;
 
 use Symfony\Component\Console\Input\InputInterface;
@@ -11,11 +12,13 @@ use regenix\exceptions\FileNotFoundException;
 use regenix\lang\File;
 use regenix\lang\String;
 
-class FrameworkBuildCommand extends RegenixCommand {
+class FrameworkBuildCommand extends RegenixCommand
+{
 
     protected $packages = array();
 
-    protected function configure() {
+    protected function configure()
+    {
         $this
             ->setName('framework-build')
             ->setDescription('Join all framework files to one file')
@@ -33,17 +36,18 @@ class FrameworkBuildCommand extends RegenixCommand {
             );
     }
 
-    protected function buildFile(File $outputFile){
+    protected function buildFile(File $outputFile)
+    {
         if ($outputFile->exists())
             $outputFile->delete();
 
         $outputFile->open('w+');
         $outputFile->write('<?php ' . "\n");
 
-        foreach ($this->packages as $namespace => $info){
+        foreach ($this->packages as $namespace => $info) {
             $outputFile->write("namespace " . ($namespace === '*' ? '' : $namespace) . " {\n");
-            foreach($info['uses'] as $use => $alias){
-                if (!String::endsWith($use, '\\' . $alias)){
+            foreach ($info['uses'] as $use => $alias) {
+                if (!String::endsWith($use, '\\' . $alias)) {
                     $outputFile->write('use ' . $use . ' as ' . $alias . ';');
                 } else {
                     $outputFile->write('use ' . $use . ';');
@@ -51,7 +55,7 @@ class FrameworkBuildCommand extends RegenixCommand {
                 $outputFile->write("\n");
             }
             $outputFile->write("\n\n");
-            foreach($info['files'] as $name => $body){
+            foreach ($info['files'] as $name => $body) {
                 $outputFile->write('//@@file: ' . $name . "\n");
                 $outputFile->write(implode("\n", $body));
                 $outputFile->write("\n");
@@ -63,7 +67,8 @@ class FrameworkBuildCommand extends RegenixCommand {
         $outputFile->close();
     }
 
-    protected function processFile(File $sourceFile){
+    protected function processFile(File $sourceFile)
+    {
         $this->writeln('    -> %s', $fileName = str_replace(Regenix::getFrameworkPath(), '', $sourceFile->getPath()));
 
         $contents = $sourceFile->getContents();
@@ -75,8 +80,8 @@ class FrameworkBuildCommand extends RegenixCommand {
         }
         $contents = explode("\n", str_replace("\n\r", "\n", $contents));
 
-        foreach($statements as $statement){
-            if ($statement instanceof \PHPParser_Node_Stmt_Namespace){
+        foreach ($statements as $statement) {
+            if ($statement instanceof \PHPParser_Node_Stmt_Namespace) {
                 if ($statement->name)
                     $name = $statement->name->toString();
                 else
@@ -84,21 +89,21 @@ class FrameworkBuildCommand extends RegenixCommand {
 
                 $startLine = $statement->getAttribute('startLine');
 
-                if (strpos($contents[$startLine - 1], '{') !== false){
+                if (strpos($contents[$startLine - 1], '{') !== false) {
                     $endLine = $statement->getAttribute('endLine');
                 } else
                     $endLine = sizeof($contents) + 1;
 
-                foreach($statement->stmts as $one){
-                    if ($one instanceof \PHPParser_Node_Stmt_Use){
-                        foreach($one->uses as $use){
-                            $this->packages[$name]['uses'][ $use->name->toString() ] =
+                foreach ($statement->stmts as $one) {
+                    if ($one instanceof \PHPParser_Node_Stmt_Use) {
+                        foreach ($one->uses as $use) {
+                            $this->packages[$name]['uses'][$use->name->toString()] =
                                 $use->alias ? $use->alias : $use->name->toString();
                         }
                         $startLine = $one->getAttribute('endLine') + 1;
-                    } elseif ($one instanceof \PHPParser_Node_Stmt_Class){
-                        foreach($one->implements as $implement){
-                            if ($implement->toString() === 'IClassInitialization'){
+                    } elseif ($one instanceof \PHPParser_Node_Stmt_Class) {
+                        foreach ($one->implements as $implement) {
+                            if ($implement->toString() === 'IClassInitialization') {
                                 $this->writeln('        ignoring ... due to IClassInitialization');
                                 return;
                             }
@@ -112,14 +117,15 @@ class FrameworkBuildCommand extends RegenixCommand {
         }
     }
 
-    protected function execute(InputInterface $input, OutputInterface $output){
+    protected function execute(InputInterface $input, OutputInterface $output)
+    {
         $this->writeln('Framework build is starting ...');
         $this->writeln();
         $outputFile = $input->getOption('outputFile');
         if (!$outputFile)
             $outputFile = SYSTEM_CACHE_TMP_DIR . '/RegenixBuild.php';
 
-        $buildFile  = $input->getOption('buildFile');
+        $buildFile = $input->getOption('buildFile');
         if (!$buildFile)
             $buildFile = Regenix::getFrameworkPath() . 'framework.build';
 
@@ -129,19 +135,19 @@ class FrameworkBuildCommand extends RegenixCommand {
 
         $outputFile = new File($outputFile);
 
-        $file->readLines(function($line) use ($output, $outputFile) {
+        $file->readLines(function ($line) use ($output, $outputFile) {
             $line = trim($line);
             if (!$line || $line[0] === '#')
                 return;
 
             $path = new File(Regenix::getFrameworkPath() . $line);
 
-            if ($path->isDirectory()){
+            if ($path->isDirectory()) {
                 $files = $path->findFiles(true);
-                foreach($files as $file){
+                foreach ($files as $file) {
                     $this->processFile($file);
                 }
-            } else if ( $path->exists() ) {
+            } else if ($path->exists()) {
                 $this->processFile($path);
             }
         });

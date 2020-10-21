@@ -1,8 +1,9 @@
 <?php
+
 namespace regenix\core;
 
-use regenix\core\Regenix;
-use regenix\analyze\ApplicationAnalyzeManager;
+//use regenix\core\Regenix;
+//use regenix\analyze\ApplicationAnalyzeManager;
 use regenix\exceptions\FileNotFoundException;
 use regenix\lang\SystemCache;
 use regenix\config\ConfigurationReadException;
@@ -27,7 +28,8 @@ use regenix\mvc\route\RouterConfiguration;
  * Class Application
  * @package regenix
  */
-class Application {
+class Application
+{
 
     const type = __CLASS__;
 
@@ -75,7 +77,8 @@ class Application {
      * @throws \regenix\lang\CoreException
      * @internal param string $appName root directory name of src
      */
-    public function __construct(File $appPath, $inWeb = true){
+    public function __construct(File $appPath, $inWeb = true)
+    {
         $this->path = $appPath;
         $this->name = $appName = $appPath->getName();
 
@@ -83,23 +86,23 @@ class Application {
         $cacheName = 'app.conf';
 
         $configFile = $this->getPath() . 'conf/application.conf';
-        if (REGENIX_STAT_OFF){
+        if (REGENIX_STAT_OFF) {
             $configData = SystemCache::get($cacheName);
         } else
             $configData = SystemCache::getWithCheckFile($cacheName, $configFile);
 
-        if (is_array($configData)){
+        if (is_array($configData)) {
             $this->config = new PropertiesConfiguration();
             $this->config->addProperties($configData);
         }
 
-        if ($this->config === null){
-            $this->config = new PropertiesConfiguration(new File( $configFile ));
+        if ($this->config === null) {
+            $this->config = new PropertiesConfiguration(new File($configFile));
             SystemCache::setWithCheckFile($cacheName, $this->config->all(), $configFile);
             Regenix::trace('Read config for new app - ' . $appName);
         }
 
-        $this->applyConfig( $this->config );
+        $this->applyConfig($this->config);
         Regenix::trace('New app - ' . $appName);
     }
 
@@ -107,7 +110,8 @@ class Application {
      * get src name (root directory name)
      * @return string
      */
-    public function getName(){
+    public function getName()
+    {
         return $this->name;
     }
 
@@ -115,35 +119,43 @@ class Application {
      * get src root path
      * @return string
      */
-    public function getPath(){
+    public function getPath()
+    {
         return $this->path->getPath() . '/';
     }
 
-    public function getSrcPath(){
+    public function getSrcPath()
+    {
         return $this->getPath() . 'src/';
     }
 
-    public function getViewPath(){
+    public function getViewPath()
+    {
         return $this->getSrcPath() . 'views/';
     }
 
-    public function getModelPath(){
+    public function getModelPath()
+    {
         return $this->getSrcPath() . 'models/';
     }
 
-    public function getTestPath(){
+    public function getTestPath()
+    {
         return $this->getPath() . 'tests/';
     }
 
-    public function getAssetPath(){
+    public function getAssetPath()
+    {
         return $this->getPath() . 'assets/';
     }
 
-    public function getLogPath(){
+    public function getLogPath()
+    {
         return ROOT . 'logs/' . $this->name . '/';
     }
 
-    public function getTempPath(){
+    public function getTempPath()
+    {
         return Regenix::getTempPath();
     }
 
@@ -151,7 +163,8 @@ class Application {
      * get public upload directory
      * @return string
      */
-    public function getPublicPath(){
+    public function getPublicPath()
+    {
         return ROOT . 'public/' . $this->name . '/';
     }
 
@@ -159,7 +172,8 @@ class Application {
      * get public upload uri
      * @return string
      */
-    public function getPublicUri(){
+    public function getPublicUri()
+    {
         return '/public/' . $this->name . '/';
     }
 
@@ -170,38 +184,43 @@ class Application {
      *   domain.com:80/s1/
      *   domain.com:80/s2/
      */
-    public function setRules(array $rules){
-        foreach(array_unique($rules) as $rule){
-            $this->rules[ $rule ] = new URL( $rule );
+    public function setRules(array $rules)
+    {
+        foreach (array_unique($rules) as $rule) {
+            $this->rules[$rule] = new URL($rule);
         }
     }
 
     /**
      * @return string
      */
-    public function getMode() {
+    public function getMode()
+    {
         return $this->mode;
     }
 
     /**
      * replace part configuration
      * @param \regenix\config\Configuration|\regenix\config\PropertiesConfiguration $config
+     * @throws ConfigurationReadException
      */
-    public function applyConfig(PropertiesConfiguration $config){
+    public function applyConfig(PropertiesConfiguration $config)
+    {
         $rules = $config->getArray("app.rules", array('/'));
-        $this->setRules( $rules );
+        $this->setRules($rules);
     }
 
 
     /**
      * @return boolean
      */
-    public function findCurrentPath(){
+    public function findCurrentPath()
+    {
         /** @var $request Request */
         $request = DI::getInstance(Request::type);
 
         foreach ($this->rules as $url) {
-            if ( $request->isBase( $url ) )
+            if ($request->isBase($url))
                 return $url;
         }
 
@@ -209,12 +228,14 @@ class Application {
     }
 
 
-    public function setUriPath(URL $url){
+    public function setUriPath(URL $url)
+    {
         $this->currentPath = $url->getPath();
     }
 
-    public function getUriPath($suffix = ''){
-        if ($suffix){
+    public function getUriPath($suffix = '')
+    {
+        if ($suffix) {
             if ($suffix === '/')
                 return $this->currentPath;
             else
@@ -225,20 +246,21 @@ class Application {
 
     /**
      * @param string $group
-     * @param bool $version, if false return last version
-     * @throws CoreException
+     * @param bool $version , if false return last version
      * @return array
+     * @throws CoreException
      */
-    public function getAsset($group, $version = false){
-        $all      = $this->getAssets();
+    public function getAsset($group, $version = false)
+    {
+        $all = $this->getAssets();
         $versions = $all[$group];
 
         if (!$versions)
             throw new CoreException('Asset `%s` is not found', $group);
 
-        if ($version){
+        if ($version) {
             $info = $versions[$version];
-            if (!is_array($info)){
+            if (!is_array($info)) {
                 throw new CoreException('Asset `%s/%s` is not found', $group, $version);
             }
         } else {
@@ -263,8 +285,10 @@ class Application {
      * @return array
      * @throws static
      * @throws FileNotFoundException
+     * @throws CoreException
      */
-    public function getAssetFiles($group, $version = false, &$included = array()){
+    public function getAssetFiles($group, $version = false, &$included = array())
+    {
         $info = $this->getAsset($group, $version);
 
         if ($included[$group])
@@ -276,17 +300,17 @@ class Application {
         $included[$group][$info['version']] = true;
 
         $result = array();
-        if (is_array($info['deps'])){
-            foreach($info['deps'] as $gr => $v){
+        if (is_array($info['deps'])) {
+            foreach ($info['deps'] as $gr => $v) {
                 $result = array_merge($result, $this->getAssetFiles($gr, $v, $included));
             }
         }
 
-        $path   = '/assets/' . $group . '~' . $info['version'] . '/';
-        foreach((array)$info['files'] as $file){
+        $path = '/assets/' . $group . '~' . $info['version'] . '/';
+        foreach ((array)$info['files'] as $file) {
             $result[] = $path . $file;
 
-            if (REGENIX_IS_DEV && !is_file(ROOT . $path . $file)){
+            if (REGENIX_IS_DEV && !is_file(ROOT . $path . $file)) {
                 throw new FileNotFoundException(new File($path . $file));
             }
         }
@@ -294,19 +318,23 @@ class Application {
         return $result;
     }
 
-    public function isDev(){
+    public function isDev()
+    {
         return $this->mode !== 'prod';
     }
 
-    public function isProd(){
+    public function isProd()
+    {
         return $this->mode === 'prod';
     }
 
-    public function isMode($mode){
+    public function isMode($mode)
+    {
         return $this->mode === $mode;
     }
 
-    public function register($inWeb = true){
+    public function register($inWeb = true)
+    {
         Regenix::trace('.register() application pre-start');
 
         Application::$instance = $this;
@@ -318,7 +346,7 @@ class Application {
             require $bootstrap;
         }
 
-        if (class_exists('\\Bootstrap')){
+        if (class_exists('\\Bootstrap')) {
             $nameClass = '\\Bootstrap';
             $this->bootstrap = new $nameClass();
             $this->bootstrap->setApp($this);
@@ -344,26 +372,26 @@ class Application {
         define('APP_NAMESPACE_DOT_F', APP_NAMESPACE_DOT ? '.' . APP_NAMESPACE_DOT : '');
 
         $this->stat = !REGENIX_STAT_OFF;
-        $this->config->setEnv( $this->mode );
+        $this->config->setEnv($this->mode);
 
         ClassScanner::addClassPath($inWeb ? $this->getSrcPath() : $this->getPath());
 
         define('APP_PUBLIC_PATH', $this->config->get('app.public', '/public/' . $this->name . '/'));
         $this->secret = $this->config->getString('app.secret');
-        if ( !$this->secret ){
+        if (!$this->secret) {
             throw new ConfigurationReadException($this->config, '`app.secret` should be set as a random string');
         }
 
         Regenix::trace('.register() application start, class path added.');
         // temp
-        Regenix::setTempPath( $this->name . '/' );
+        Regenix::setTempPath($this->name . '/');
 
         // session
-        if ($inWeb){
+        if ($inWeb) {
             $sessionDriver = new DefaultSessionDriver();
             $sessionDriver->register();
 
-            if (APC_ENABLED && SYSTEM_IN_MEM_CACHED){
+            if (APC_ENABLED && SYSTEM_IN_MEM_CACHED) {
                 $sessionDriver = new APCSessionDriver();
                 $sessionDriver->register();
             }
@@ -378,11 +406,11 @@ class Application {
         $this->_registerDependencies();
         Regenix::trace('.registerDependencies() application finish');
 
-        if ($this->config->getBoolean('analyzer.enabled', IS_DEV)){
-            ClassScanner::addClassPath($this->getTestPath());
-            $analyzeManager = new ApplicationAnalyzeManager($this);
-            $analyzeManager->analyze();
-        }
+//        if ($this->config->getBoolean('analyzer.enabled', IS_DEV)) {
+//            ClassScanner::addClassPath($this->getTestPath());
+//            $analyzeManager = new ApplicationAnalyzeManager($this);
+//            $analyzeManager->analyze();
+//        }
 
         // route
         $this->_registerRoute();
@@ -394,40 +422,41 @@ class Application {
         if (REGENIX_IS_DEV)
             $this->_registerTests();
 
-        if ($inWeb){
+        if ($inWeb) {
             $this->_registerSystemController();
             Regenix::trace('.registerSystemController() application, finish register app');
         }
 
-        if ($this->bootstrap){
+        if ($this->bootstrap) {
             $this->bootstrap->onStart();
         }
 
         Regenix::trace('.registerBootstrap() application, finish register app');
     }
 
-    public function loadDeps(){
+    public function loadDeps()
+    {
         $this->deps = array();
-        if (!$this->stat){
+        if (!$this->stat) {
             $this->deps = SystemCache::get('app.deps');
-            if ($this->deps !== null){
+            if ($this->deps !== null) {
                 return true;
             }
         }
 
         $file = $this->getPath() . 'conf/deps.json';
-        if (is_file($file)){
-            if (REGENIX_IS_DEV){
+        if (is_file($file)) {
+            if (REGENIX_IS_DEV) {
                 $this->deps = json_decode(file_get_contents($file), true);
 
-                if (json_last_error()){
+                if (json_last_error()) {
                     throw new JsonFileException('conf/deps.json');
                 }
             } else {
                 $this->deps = SystemCache::getWithCheckFile('app.deps', $file);
-                if ($this->deps === null){
+                if ($this->deps === null) {
                     $this->deps = json_decode(file_get_contents($file), true);
-                    if (json_last_error()){
+                    if (json_last_error()) {
                         throw new JsonFileException('conf/deps.json', 'invalid json format');
                     }
                     SystemCache::setWithCheckFile('app.deps', $this->deps, $file, 60 * 5);
@@ -443,19 +472,20 @@ class Application {
     /**
      * Get all assets of app
      *
-     * @throws CoreException
      * @return array
+     * @throws CoreException
      */
-    public function getAssets(){
+    public function getAssets()
+    {
         if (is_array($this->assets))
             return $this->assets;
 
         $this->assets = $this->repository->getAll('assets');
 
-        if (REGENIX_IS_DEV){
-            foreach($this->assets as $group => $versions){
-                foreach($versions as $version => $el){
-                    if (!$this->repository->isValid($group, $version)){
+        if (REGENIX_IS_DEV) {
+            foreach ($this->assets as $group => $versions) {
+                foreach ($versions as $version => $el) {
+                    if (!$this->repository->isValid($group, $version)) {
                         throw new CoreException('Asset `%s/%s` is not valid or non-exist, please run `regenix deps update` in console', $group, $version);
                     }
                 }
@@ -464,18 +494,19 @@ class Application {
         return $this->assets;
     }
 
-    private function _registerDependencies(){
+    private function _registerDependencies()
+    {
         $this->loadDeps();
         $this->repository = new Repository($this->deps);
 
         // modules
-        if ($this->deps['modules']){
+        if ($this->deps['modules']) {
             $this->repository->setEnv('modules');
-            foreach((array)$this->deps['modules'] as $name => $conf){
+            foreach ((array)$this->deps['modules'] as $name => $conf) {
                 $dep = $this->repository->findLocalVersion($name, $conf['version']);
-                if (!$dep){
+                if (!$dep) {
                     throw new CoreException('Can`t find the `%s/%s` module, run `regenix deps update` in console to fix it', $name, $conf['version']);
-                } elseif (REGENIX_IS_DEV && !$this->repository->isValid($name, $dep['version'])){
+                } elseif (REGENIX_IS_DEV && !$this->repository->isValid($name, $dep['version'])) {
                     throw new CoreException('Module `%s` is not valid or non-exist, run `regenix deps update` in console to fix it', $name);
                 }
                 Module::register($name, $dep['version']);
@@ -485,7 +516,7 @@ class Application {
         if (REGENIX_IS_DEV)
             $this->getAssets();
 
-        if ($this->deps['composer']['require']){
+        if ($this->deps['composer']['require']) {
             if ($this->isDev())
                 ClassScanner::addClassPath($this->getPath() . 'vendor/');
             else
@@ -493,8 +524,9 @@ class Application {
         }
     }
 
-    private function _registerSystemController(){
-        if ($this->config->getBoolean('captcha.enabled')){
+    private function _registerSystemController()
+    {
+        if ($this->config->getBoolean('captcha.enabled')) {
             if ($this->isDev())
                 Captcha::checkAvailable();
 
@@ -504,41 +536,45 @@ class Application {
             );
         }
 
-        if ($this->config->getBoolean('i18n.js')){
+        if ($this->config->getBoolean('i18n.js')) {
             $this->router->addRoute('GET', '/system/i18n.js', '.regenix.mvc.SystemController.i18n_js');
             $this->router->addRoute('GET', '/system/i18n.{_lang}.js', '.regenix.mvc.SystemController.i18n_js');
         }
     }
 
-    private function _registerTests(){
+    private function _registerTests()
+    {
         $this->router->addRoute('*', '/@test', '.regenix.test.Tester.run');
         $this->router->addRoute('GET', '/@test.json', '.regenix.test.Tester.runAsJson');
     }
 
-    private function _registerOrm(){
-        if (file_exists($this->getPath() . 'conf/orm/')){
+    private function _registerOrm()
+    {
+        if (file_exists($this->getPath() . 'conf/orm/')) {
             $file = $this->getPath() . 'conf/orm/build/conf/-conf.php';
-            if (file_exists($file)){
+            if (file_exists($file)) {
                 if (!class_exists('\\Propel'))
                     throw new CoreException('Propel ORM vendor library is not installed');
 
                 \Propel::init($file);
             } else {
                 throw new CoreException('Cannot find `%s` runtime configuration of Propel ORM, '
-                        . "\n\n"
-                        . 'Create `conf/orm/runtime-conf.xml` and run in console `regenix propel convert-conf` to fix it',
+                    . "\n\n"
+                    . 'Create `conf/orm/runtime-conf.xml` and run in console `regenix propel convert-conf` to fix it',
                     $file);
             }
         }
     }
 
-    private function loadRouting(RouterConfiguration $routeConfig){
+    private function loadRouting(RouterConfiguration $routeConfig)
+    {
         $this->router = DI::getInstance(Router::type);
         $this->router->applyConfig($routeConfig);
         DI::bind($this->router);
     }
 
-    private function _registerRoute(){
+    private function _registerRoute()
+    {
         $routeFile = $this->getPath() . 'conf/route';
         $route = new File($routeFile);
         $routePatternDir = new File($this->getPath() . 'conf/routes/');
@@ -546,7 +582,7 @@ class Application {
         // routes
         $routeConfig = null;
         $routeConfigData = SystemCache::get('route');
-        if (is_array($routeConfigData)){
+        if (is_array($routeConfigData)) {
             $routeConfig = new RouterConfiguration();
             $routeConfig->setPatternDir($routePatternDir);
             $routeConfig->setFile($route);
@@ -554,20 +590,20 @@ class Application {
         }
 
         // optimize, absolute cache
-        if (!$this->stat && $routeConfig !== null){
+        if (!$this->stat && $routeConfig !== null) {
             $this->loadRouting($routeConfig);
             return;
         }
 
         $upd = SystemCache::get('routes.$upd');
-        if ( !is_array($routeConfig)
+        if (!is_array($routeConfig)
             || $route->isModified($upd, false)
-            || $routePatternDir->isModified($upd, REGENIX_IS_DEV) ){
+            || $routePatternDir->isModified($upd, REGENIX_IS_DEV)) {
 
             $this->router = DI::getInstance(Router::type);
-            $routeConfig  = new RouterConfiguration();
+            $routeConfig = new RouterConfiguration();
 
-            foreach (Module::$modules as $name => $module){
+            foreach (Module::$modules as $name => $module) {
                 $routeConfig->addModule($name, '.modules.' . $name . '.controllers.', $module->getRouteFile());
             }
 
@@ -597,13 +633,16 @@ class Application {
     /**
      * @return Application
      */
-    public static function current(){
+    public static function current()
+    {
         return self::$instance;
     }
 
     private static $srcDir = null;
-    public static function getApplicationsPath(){
-        if ( self::$srcDir ) return self::$srcDir;
+
+    public static function getApplicationsPath()
+    {
+        if (self::$srcDir) return self::$srcDir;
 
         return self::$srcDir = str_replace(DIRECTORY_SEPARATOR, '/', ROOT . 'apps/');
     }

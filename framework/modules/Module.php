@@ -9,44 +9,50 @@ use regenix\mvc\route\Router;
 use regenix\lang\CoreException;
 use regenix\lang\File;
 
-class Module {
+class Module
+{
 
     const type = __CLASS__;
-    
+
     public $uid;
     public $version;
 
-    protected function __construct(){
-        ;
+    protected function __construct()
+    {
+
     }
 
     public static $modules = array();
 
-    public static function getCurrent(){
+    public static function getCurrent()
+    {
         $tmp = explode('\\', get_called_class(), 3);
-        return self::$modules[ $tmp[1] ];
+        return self::$modules[$tmp[1]];
     }
 
     /**
      * get route file
      * @return \regenix\lang\File
      */
-    final public function getRouteFile(){
-        return new File( $this->getPath() . 'conf/route' );
+    final public function getRouteFile()
+    {
+        return new File($this->getPath() . 'conf/route');
     }
-    
+
     /**
      * get module path
      * @return string
      */
-    final public function getPath(){
+    final public function getPath()
+    {
         return ROOT . 'modules/' . $this->uid . '~' . $this->version . '/';
     }
 
     /**
      * @return null|string
      */
-    final public function getModelPath(){
+    final public function getModelPath()
+    {
         $path = $this->getPath() . 'src/models/';
         return is_dir($path) ? $path : null;
     }
@@ -54,7 +60,8 @@ class Module {
     /**
      * @return null|string
      */
-    final public function getControllerPath(){
+    final public function getControllerPath()
+    {
         $path = $this->getPath() . 'src/controllers/';
         return is_dir($path) ? $path : null;
     }
@@ -66,34 +73,36 @@ class Module {
      * register module by name, all modules in module directory
      * @param string $moduleName
      * @param $version
-     * @throws static
      * @return boolean
+     * @throws static
      */
-    public static function register($moduleName, $version){
-        if ( self::$modules[ $moduleName ] )
+    public static function register($moduleName, $version)
+    {
+        if (self::$modules[$moduleName])
             return false;
 
         ClassScanner::addClassRelativePath('modules/' . $moduleName . '~' . $version . '/src');
 
         $module = new Module();
-        $module->uid     = $moduleName;
+        $module->uid = $moduleName;
         $module->version = $version;
 
-        self::$modules[ $moduleName ] = $module;
+        self::$modules[$moduleName] = $module;
         return true;
     }
 
     /**
      * @return array
      */
-    public static function getAllModules(){
+    public static function getAllModules()
+    {
         $result = array();
-        $dirs   = scandir(ROOT . 'modules/');
-        foreach((array)$dirs as $dir){
+        $dirs = scandir(ROOT . 'modules/');
+        foreach ((array)$dirs as $dir) {
             $dir = basename($dir);
-            if ($dir){
+            if ($dir) {
                 $dir = explode('~', $dir);
-                if ($dir[1]){
+                if ($dir[1]) {
                     $result[$dir[0]][] = $dir[1];
                 }
             }

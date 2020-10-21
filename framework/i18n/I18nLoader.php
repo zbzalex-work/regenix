@@ -1,7 +1,9 @@
 <?php
+
 namespace regenix\i18n;
 
-interface I18nLoader {
+interface I18nLoader
+{
 
     /**
      * @param string $lang

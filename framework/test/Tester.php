@@ -1,4 +1,5 @@
 <?php
+
 namespace regenix\test;
 
 use regenix\core\Application;
@@ -8,10 +9,12 @@ use regenix\lang\CoreException;
 use regenix\lang\ClassScanner;
 use regenix\mvc\Controller;
 
-class Tester extends Controller {
+class Tester extends Controller
+{
 
-    public static function startTesting($id = null, $moduleWithVersion = null, $callback = null){
-        if ($moduleWithVersion){
+    public static function startTesting($id = null, $moduleWithVersion = null, $callback = null)
+    {
+        if ($moduleWithVersion) {
             if (!is_dir(ROOT . 'modules/' . $moduleWithVersion . '/'))
                 throw new CoreException('Module `%s` not found', $moduleWithVersion);
 
@@ -27,7 +30,7 @@ class Tester extends Controller {
         }
 
         $tests = array();
-        if ($id){
+        if ($id) {
             $testClass = ClassScanner::find(str_replace('.', '\\', $id));
             $tests[] = $testClass->newInstance();
 
@@ -39,13 +42,13 @@ class Tester extends Controller {
         } else {
             $app = Regenix::app();
             $testClass = ClassScanner::find(UnitTest::type);
-            foreach($testClass->getAllChildren($namespace) as $child){
+            foreach ($testClass->getAllChildren($namespace) as $child) {
                 $class = $child->getName();
                 $reflection = new \ReflectionClass($class);
                 if ($reflection->isAbstract())
                     continue;
 
-                $test    = new $class;
+                $test = new $class;
                 $tests[] = $test;
             }
 
@@ -53,34 +56,35 @@ class Tester extends Controller {
                 $app->bootstrap->onTest($tests);
         }
 
-        foreach($tests as $test){
+        foreach ($tests as $test) {
             /** @var $test UnitTest */
             $test->startTesting();
-            if ($callback){
+            if ($callback) {
                 call_user_func($callback, $test);
             }
         }
     }
 
-    public static function getResults(){
+    public static function getResults()
+    {
         $all_result = true;
         $json = array('result' => $all_result, 'tests' => array());
-        foreach(UnitTest::$tested as $class => &$test){
-            $class  = str_replace('\\', '.', $class);
-            if ($test == null){
+        foreach (UnitTest::$tested as $class => &$test) {
+            $class = str_replace('\\', '.', $class);
+            if ($test == null) {
                 $json['tests'][$class] = array(
                     'result' => false,
-                    'class'  => $class,
-                    'skip'   => true
+                    'class' => $class,
+                    'skip' => true
                 );
                 continue;
             }
 
             $result = $test->getResult();
-            $fails  = array();
-            foreach($result as $method => &$list){
-                foreach($list as $call){
-                    if (!$call['result']){
+            $fails = array();
+            foreach ($result as $method => &$list) {
+                foreach ($list as $call) {
+                    if (!$call['result']) {
                         $fails[] = $method;
                         break;
                     }
@@ -98,16 +102,17 @@ class Tester extends Controller {
         return $json;
     }
 
-    protected static function getSourceLine($file, $line, $offset = 1){
-        if (file_exists($file) && is_readable($file) ){
+    protected static function getSourceLine($file, $line, $offset = 1)
+    {
+        if (file_exists($file) && is_readable($file)) {
             $fp = fopen($file, 'r');
-            $n  = 1;
+            $n = 1;
             $source = array();
-            while($str = fgets($fp, 4096)){
-                if ( $n > $line - $offset && $n < $line + $offset ){
+            while ($str = fgets($fp, 4096)) {
+                if ($n > $line - $offset && $n < $line + $offset) {
                     $source[$n] = $str;
                 }
-                if ( $n > $line + $offset )
+                if ($n > $line + $offset)
                     break;
                 $n++;
             }
@@ -117,10 +122,11 @@ class Tester extends Controller {
         return null;
     }
 
-    protected function detail($detail){
+    protected function detail($detail)
+    {
         $this->notFoundIfEmpty($detail);
-        foreach($detail['log'] as $method => &$calls){
-            foreach($calls as &$call){
+        foreach ($detail['log'] as $method => &$calls) {
+            foreach ($calls as &$call) {
                 $file = $call['file'];
                 $call['source'] = static::getSourceLine($call['file'], $call['line']);
             }
@@ -130,12 +136,13 @@ class Tester extends Controller {
         $this->put('detail', $detail);
     }
 
-    public function run($id = null){
+    public function run($id = null)
+    {
         self::startTesting($id);
         $result = static::getResults();
         $this->put('app', Regenix::app());
 
-        if ($id){
+        if ($id) {
             $this->detail($detail = $result['tests'][$id]);
             $this->response->setHeader('Test-Status', $detail['result'] ? 'success' : 'fail');
         } else {
@@ -145,7 +152,8 @@ class Tester extends Controller {
         $this->render();
     }
 
-    public function runAsJson(){
+    public function runAsJson()
+    {
         self::startTesting();
         $this->renderJSON(static::getResults());
     }

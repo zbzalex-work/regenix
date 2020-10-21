@@ -1,4 +1,5 @@
 <?php
+
 namespace regenix\lang;
 
 /**
@@ -7,6 +8,7 @@ namespace regenix\lang;
  * Interface Injectable
  * @package regenix\mvc\route
  */
-interface Injectable {
+interface Injectable
+{
     const injectable_type = __CLASS__;
 }

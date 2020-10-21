@@ -1,4 +1,5 @@
 <?php
+
 namespace regenix\mvc;
 
 use regenix\core\Application;
@@ -9,7 +10,8 @@ use regenix\lang\String;
 use regenix\mvc\template\RegenixTemplate;
 use regenix\mvc\template\TemplateLoader;
 
-abstract class Mailer implements IClassInitialization {
+abstract class Mailer implements IClassInitialization
+{
 
     private static $defaults = array(
         'charset' => 'utf-8',
@@ -26,15 +28,23 @@ abstract class Mailer implements IClassInitialization {
     /** @var array */
     private $args = array();
 
-    public function __construct($context = ''){
+    public function __construct($context = '')
+    {
         $this->context = $context;
         $this->mailer = new \PHPMailer(true);
 
-        switch(self::$defaults['method']){
-            case 'smtp': $this->mailer->IsSMTP(); break;
-            case 'sendmail': $this->mailer->IsSendmail(); break;
-            case 'mail': $this->mailer->IsMail(); break;
-            default: {
+        switch (self::$defaults['method']) {
+            case 'smtp':
+                $this->mailer->IsSMTP();
+                break;
+            case 'sendmail':
+                $this->mailer->IsSendmail();
+                break;
+            case 'mail':
+                $this->mailer->IsMail();
+                break;
+            default:
+            {
                 throw new \InvalidArgumentException(String::format('Unknown method for send email - "%s"',
                     self::$defaults['method']));
             }
@@ -42,9 +52,9 @@ abstract class Mailer implements IClassInitialization {
 
         $this->mailer->Host = self::$defaults['smtp.host'];
 
-        if (self::$defaults['smtp.username']){
+        if (self::$defaults['smtp.username']) {
             $this->mailer->SMTPAuth = true;
-            $this->mailer->Port     = self::$defaults['smtp.port'];
+            $this->mailer->Port = self::$defaults['smtp.port'];
             $this->mailer->Username = self::$defaults['smtp.username'];
             $this->mailer->Password = self::$defaults['smtp.password'];
             $this->mailer->SMTPSecure = self::$defaults['smtp.channel'];
@@ -57,14 +67,16 @@ abstract class Mailer implements IClassInitialization {
      * @param $name
      * @param $value
      */
-    protected function put($name, $value){
+    protected function put($name, $value)
+    {
         $this->args[$name] = $value;
     }
 
     /**
      * @param array $values
      */
-    protected function putAll(array $values){
+    protected function putAll(array $values)
+    {
         $this->args = array_merge($this->args, $values);
     }
 
@@ -72,7 +84,8 @@ abstract class Mailer implements IClassInitialization {
      * @param string $subject
      * @return $this
      */
-    protected function setSubject($subject){
+    protected function setSubject($subject)
+    {
         $this->mailer->Subject = $subject;
         return $this;
     }
@@ -82,7 +95,8 @@ abstract class Mailer implements IClassInitialization {
      * @param string $name
      * @return $this
      */
-    protected function addRecipient($email, $name = ''){
+    protected function addRecipient($email, $name = '')
+    {
         $this->mailer->AddAddress($email, $name);
         return $this;
     }
@@ -92,7 +106,8 @@ abstract class Mailer implements IClassInitialization {
      * @param string $name
      * @return $this
      */
-    protected function setFrom($email, $name = ''){
+    protected function setFrom($email, $name = '')
+    {
         $this->mailer->SetFrom($email, $name);
         return $this;
     }
@@ -102,7 +117,8 @@ abstract class Mailer implements IClassInitialization {
      * @param string $name
      * @return $this
      */
-    protected function addAttachment(File $file, $name = ''){
+    protected function addAttachment(File $file, $name = '')
+    {
         $this->mailer->AddAttachment($file->getPath(), $name);
         return $this;
     }
@@ -113,7 +129,8 @@ abstract class Mailer implements IClassInitialization {
      * @param string $name
      * @return $this
      */
-    protected function addEmbeddedImage(File $file, $cid, $name = ''){
+    protected function addEmbeddedImage(File $file, $cid, $name = '')
+    {
         $this->mailer->AddEmbeddedImage($file->getPath(), $cid, $name);
         return $this;
     }
@@ -123,7 +140,8 @@ abstract class Mailer implements IClassInitialization {
      * @param string $name
      * @return $this
      */
-    protected function addReplyTo($email, $name = ''){
+    protected function addReplyTo($email, $name = '')
+    {
         $this->mailer->AddReplyTo($email, $name);
         return $this;
     }
@@ -133,7 +151,8 @@ abstract class Mailer implements IClassInitialization {
      * @param string $name
      * @return $this
      */
-    protected function addCC($email, $name = ''){
+    protected function addCC($email, $name = '')
+    {
         $this->mailer->AddCC($email, $name);
         return $this;
     }
@@ -143,7 +162,8 @@ abstract class Mailer implements IClassInitialization {
      * @param string $name
      * @return $this
      */
-    protected function addBCC($email, $name = ''){
+    protected function addBCC($email, $name = '')
+    {
         $this->mailer->AddBCC($email, $name);
         return $this;
     }
@@ -152,7 +172,8 @@ abstract class Mailer implements IClassInitialization {
      * @param string $charset
      * @return $this
      */
-    protected function setCharset($charset){
+    protected function setCharset($charset)
+    {
         $this->mailer->CharSet = $charset;
         return $this;
     }
@@ -162,12 +183,13 @@ abstract class Mailer implements IClassInitialization {
      * @param $result
      * @return void
      */
-    protected function putTemplate($template, &$result){
+    protected function putTemplate($template, &$result)
+    {
         $template = TemplateLoader::load('.notifiers/' . ($this->context ? $this->context . '/' : '') . $template);
         $template->putArgs($this->args);
 
         $content = $template->getContent();
-        if ($content === null){
+        if ($content === null) {
             ob_start();
             $template->render();
             $content = ob_get_contents();
@@ -181,14 +203,15 @@ abstract class Mailer implements IClassInitialization {
      * @param $template
      * @return void
      */
-    protected function putHtmlTemplate($template){
+    protected function putHtmlTemplate($template)
+    {
         $this->mailer->IsHTML(true);
         $this->putTemplate($template, $this->mailer->Body);
 
         $file = new File($template);
         $altTemplate = $file->getParent() . '/' . $file->getNameWithoutExtension() . '.alt.' . $file->getExtension();
 
-        if (TemplateLoader::load($altTemplate, false)){
+        if (TemplateLoader::load($altTemplate, false)) {
             $this->putTemplate($altTemplate, $this->mailer->AltBody);
         }
     }
@@ -196,7 +219,8 @@ abstract class Mailer implements IClassInitialization {
     /**
      * @param string $template
      */
-    protected function putTextTemplate($template){
+    protected function putTextTemplate($template)
+    {
         $this->mailer->IsHTML(false);
         $this->putTemplate($template, $this->mailer->Body);
     }
@@ -206,17 +230,18 @@ abstract class Mailer implements IClassInitialization {
      * @param bool|string $template
      * @return bool
      */
-    protected function send($template = false){
-        if (!$template){
+    protected function send($template = false)
+    {
+        if (!$template) {
             $class = get_class($this);
             $class = str_replace('\\', '/', $class);
 
-            if (String::startsWith($class, 'notifiers/')){
+            if (String::startsWith($class, 'notifiers/')) {
                 $class = String::substring($class, 10);
             }
 
-            $callers  = debug_backtrace();
-            $method   = $callers[1]['function'];
+            $callers = debug_backtrace();
+            $method = $callers[1]['function'];
             $template = $class . '/' . $method . '.html';
         }
 
@@ -228,17 +253,18 @@ abstract class Mailer implements IClassInitialization {
      * @param bool|string $template
      * @return bool
      */
-    protected function sendText($template = false){
-        if (!$template){
+    protected function sendText($template = false)
+    {
+        if (!$template) {
             $class = get_class($this);
             $class = str_replace('\\', '/', $class);
 
-            if (String::startsWith($class, 'notifiers/')){
+            if (String::startsWith($class, 'notifiers/')) {
                 $class = String::substring($class, 10);
             }
 
-            $callers  = debug_backtrace();
-            $method   = $callers[1]['function'];
+            $callers = debug_backtrace();
+            $method = $callers[1]['function'];
             $template = $class . '/' . $method . '.html';
         }
 
@@ -250,29 +276,32 @@ abstract class Mailer implements IClassInitialization {
      * @param string $context
      * @return $this
      */
-    public function setContext($context){
+    public function setContext($context)
+    {
         $this->context = $context;
         return $this;
     }
 
     private static $init = false;
-    public static function initialize(){
+
+    public static function initialize()
+    {
         if (self::$init) return;
 
         self::$init = true;
 
         $app = Regenix::app();
-        if ($app){
+        if ($app) {
             $config = $app->config;
 
             self::$defaults = array(
-                'method'  => $config->getString('mail.method', self::$defaults['method']),
+                'method' => $config->getString('mail.method', self::$defaults['method']),
                 'charset' => $config->get('mail.charset', self::$defaults['charset']),
                 'smtp.host' => implode(';', $config->getArray('mail.smtp.host')),
                 'smtp.port' => $config->get('mail.smtp.port', self::$defaults['smtp.port']),
                 'smtp.username' => $config->get('mail.smtp.username', self::$defaults['smtp.username']),
                 'smtp.password' => $config->get('mail.smtp.password', self::$defaults['smtp.password']),
-                'smtp.channel'  => $config->get('mail.smtp.channel', self::$defaults['smtp.channel'])
+                'smtp.channel' => $config->get('mail.smtp.channel', self::$defaults['smtp.channel'])
             );
         }
     }

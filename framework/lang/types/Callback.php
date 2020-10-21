@@ -1,7 +1,9 @@
 <?php
+
 namespace regenix\lang\types;
 
-class Callback {
+class Callback
+{
 
     const type = __CLASS__;
 
@@ -12,8 +14,9 @@ class Callback {
      * @param string|null $method
      * @throws \InvalidArgumentException
      */
-    public function __construct($name, $method = null){
-        if ($name instanceof \Closure || $name === null){
+    public function __construct($name, $method = null)
+    {
+        if ($name instanceof \Closure || $name === null) {
             $this->callback = $name;
             return;
         } elseif (is_object($name)) {
@@ -24,7 +27,7 @@ class Callback {
             $this->callback = $name;
         }
 
-        if (!is_callable($this->callback)){
+        if (!is_callable($this->callback)) {
             throw new \InvalidArgumentException('Invalid arguments for Callback: ' . $this->toString());
         }
     }
@@ -32,7 +35,8 @@ class Callback {
     /**
      * @return mixed
      */
-    public function __invoke(){
+    public function __invoke()
+    {
         if ($this->callback !== null)
             return call_user_func_array($this->callback, func_get_args());
     }
@@ -41,7 +45,8 @@ class Callback {
      * @param args...
      * @return mixed
      */
-    public function invoke(){
+    public function invoke()
+    {
         if ($this->callback !== null)
             return call_user_func_array($this->callback, func_get_args());
     }
@@ -50,15 +55,17 @@ class Callback {
      * @param array $args
      * @return mixed
      */
-    public function invokeArgs(array $args){
+    public function invokeArgs(array $args)
+    {
         if ($this->callback !== null)
             return call_user_func_array($this->callback, $args);
     }
 
-    public function toString(){
-        if ($this->callback instanceof \Closure){
+    public function toString()
+    {
+        if ($this->callback instanceof \Closure) {
             return (string)$this->callback;
-        } elseif (is_array($this->callback)){
+        } elseif (is_array($this->callback)) {
             $class = get_class($this->callback[0]);
             return $class . '->' . $this->callback[1];
         } else {
@@ -66,33 +73,40 @@ class Callback {
         }
     }
 
-    public function __toString(){
+    public function __toString()
+    {
         return $this->toString();
     }
 
-    public function isNop(){
+    public function isNop()
+    {
         return $this->callback === null;
     }
 
-    public function isClosure(){
+    public function isClosure()
+    {
         return $this->callback instanceof \Closure;
     }
 
-    public function isStaticMethod(){
+    public function isStaticMethod()
+    {
         return is_string($this->callback) && strpos($this->callback, '::') !== false;
     }
 
-    public function isDynamicMethod(){
+    public function isDynamicMethod()
+    {
         return is_array($this->callback);
     }
 
-    public function isFunction(){
+    public function isFunction()
+    {
         return is_string($this->callback) && !$this->isStaticMethod();
     }
 
     private static $nop = null;
 
-    public static function nop(){
+    public static function nop()
+    {
         if (self::$nop)
             return self::$nop;
 

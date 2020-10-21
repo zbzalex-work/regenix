@@ -1,4 +1,5 @@
 <?php
+
 namespace regenix\validation;
 
 use regenix\exceptions\TypeException;
@@ -14,7 +15,8 @@ use regenix\validation\results\ValidationMinLengthResult;
 use regenix\validation\results\ValidationRequiresResult;
 use regenix\validation\results\ValidationResult;
 
-abstract class EntityValidator extends Validator {
+abstract class EntityValidator extends Validator
+{
 
     /** @var mixed */
     protected $entity;
@@ -22,11 +24,13 @@ abstract class EntityValidator extends Validator {
     /** @var array */
     protected $map = array();
 
-    public function __construct($entity){
+    public function __construct($entity)
+    {
         $this->entity = $entity;
     }
 
-    protected function map($callback){
+    protected function map($callback)
+    {
         if (!is_callable($callback))
             throw new TypeException('$callback', 'Callable');
 
@@ -38,30 +42,31 @@ abstract class EntityValidator extends Validator {
      * get value by name of attribute
      * example: getValue('name'), getValue('address.name')
      * @param $attribute
-     * @throws ValidationException
      * @return mixed|null
+     * @throws ValidationException
      */
-    protected function getAttribute($attribute){
+    protected function getAttribute($attribute)
+    {
         if (!$attribute)
             return $this->entity;
 
         $attribute = str_replace('->', '.', $attribute);
-        $attrs     = explode('.', $attribute);
+        $attrs = explode('.', $attribute);
 
-        $obj   = $this->entity;
+        $obj = $this->entity;
         $value = null;
-        while(list($i, $attribute) = each($attrs)){
-            if (is_object($obj)){
+        while (list($i, $attribute) = each($attrs)) {
+            if (is_object($obj)) {
                 $value = $obj->{$attribute};
                 if (!isset($obj->{$attribute}))
                     throw new ValidationException('`%s` attribute does not exist in the %s class', $attribute, get_class($this->entity));
-            } else if (is_array($obj)){
+            } else if (is_array($obj)) {
                 $value = $obj = $obj[$attribute];
             } else
                 throw new ValidationException('`%s` attribute must be an object or array', $attribute);
         }
 
-        foreach($this->map as $callback){
+        foreach ($this->map as $callback) {
             $value = call_user_func($callback, $value);
         }
         $this->map = array();
@@ -69,10 +74,11 @@ abstract class EntityValidator extends Validator {
         return $value;
     }
 
-    protected function validateAttribute($attribute, $message, ValidationResult $validation){
+    protected function validateAttribute($attribute, $message, ValidationResult $validation)
+    {
         $validation->message($message);
 
-        if (!$validation->validate($this->getAttribute($attribute))){
+        if (!$validation->validate($this->getAttribute($attribute))) {
             $this->errors[] = array(
                 'attr' => $attribute,
                 'validator' => $validation
@@ -85,8 +91,9 @@ abstract class EntityValidator extends Validator {
         return $validation;
     }
 
-    protected function addError($attribute, $message){
-        $validation = new ValidationCallbackResult(function(){
+    protected function addError($attribute, $message)
+    {
+        $validation = new ValidationCallbackResult(function () {
             return false;
         });
 
@@ -100,35 +107,43 @@ abstract class EntityValidator extends Validator {
         return $validation;
     }
 
-    protected function isEmptyAttr($attribute){
+    protected function isEmptyAttr($attribute)
+    {
         return $this->validateAttribute($attribute, 'validation.result.isEmpty', new ValidationIsEmptyResult());
     }
 
-    protected function requiresAttr($attribute){
+    protected function requiresAttr($attribute)
+    {
         return $this->validateAttribute($attribute, 'validation.result.requires', new ValidationRequiresResult());
     }
 
-    protected function minLengthAttr($attribute, $min){
+    protected function minLengthAttr($attribute, $min)
+    {
         return $this->validateAttribute($attribute, 'validation.result.minLength', new ValidationMinLengthResult($min));
     }
 
-    protected function maxLengthAttr($attribute, $max){
+    protected function maxLengthAttr($attribute, $max)
+    {
         return $this->validateAttribute($attribute, 'validation.result.maxLength', new ValidationMaxLengthResult($max));
     }
 
-    protected function maxFileSizeAttr($attribute, $size){
+    protected function maxFileSizeAttr($attribute, $size)
+    {
         return $this->validateAttribute($attribute, 'validation.result.maxFileSize', new ValidationFileMaxSizeResult($size));
     }
 
-    protected function isFileTypeAttr($attribute, array $extensions){
+    protected function isFileTypeAttr($attribute, array $extensions)
+    {
         return $this->validateAttribute($attribute, 'validation.result.isFileType', new ValidationFileTypeResult($extensions));
     }
 
-    protected function matchesAttr($attribute, $pattern){
+    protected function matchesAttr($attribute, $pattern)
+    {
         return $this->validateAttribute($attribute, 'validation.result.matches', new ValidationMatchesResult($pattern));
     }
 
-    protected function checkFilterAttr($attribute, $filter){
+    protected function checkFilterAttr($attribute, $filter)
+    {
         return $this->validateAttribute($attribute, 'validation.result.filter', new ValidationFilterResult($filter));
     }
 }

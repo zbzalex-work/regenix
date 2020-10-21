@@ -1,4 +1,5 @@
 <?php
+
 namespace regenix\console;
 
 use Symfony\Component\Console\Tester\CommandTester;
@@ -9,7 +10,8 @@ use regenix\lang\File;
 use regenix\logger\Logger;
 use regenix\core\Application;
 
-class RegenixConsole extends ConsoleApplication {
+class RegenixConsole extends ConsoleApplication
+{
 
     /**
      * @var Application[]
@@ -21,7 +23,8 @@ class RegenixConsole extends ConsoleApplication {
      */
     public $app;
 
-    public function __construct() {
+    public function __construct()
+    {
         parent::__construct();
         register_shutdown_function(array($this, '__shutdownConsole'));
 
@@ -30,7 +33,7 @@ class RegenixConsole extends ConsoleApplication {
 
         $baseCommand = ClassScanner::find(RegenixCommand::type);
         $commands = $baseCommand->getAllChildren();
-        foreach($commands as $command){
+        foreach ($commands as $command) {
             if (class_exists($command->getName())) {
                 $this->add($command->newInstance());
             }
@@ -42,7 +45,8 @@ class RegenixConsole extends ConsoleApplication {
      * @param array $args
      * @return CommandTester
      */
-    public function execute($command, array $args = array()){
+    public function execute($command, array $args = array())
+    {
         $command = $this->find($command);
         $commandTester = new CommandTester($command);
         $args['command'] = $command->getName();
@@ -54,31 +58,34 @@ class RegenixConsole extends ConsoleApplication {
      * @param $command
      * @param array $args
      */
-    public function executeAndDisplay($command, array $args = array()){
+    public function executeAndDisplay($command, array $args = array())
+    {
         $commandTester = $this->execute($command, $args);
         echo $commandTester->getDisplay(true);
     }
 
-    public function registerApps(){
+    public function registerApps()
+    {
         $this->apps = array();
         $path = new File(Application::getApplicationsPath());
-        foreach ($path->findFiles() as $path){
-            if ($path->isDirectory()){
-                $this->apps[ $path->getName() ] = new Application( $path, false );
+        foreach ($path->findFiles() as $path) {
+            if ($path->isDirectory()) {
+                $this->apps[$path->getName()] = new Application($path, false);
             }
         }
     }
 
-    public function registerCurrentApp(){
+    public function registerCurrentApp()
+    {
         $tmpFile = new File(Regenix::getTempPath() . '/regenix/.current');
 
-        if ($tmpFile->isFile()){
+        if ($tmpFile->isFile()) {
             $this->app = @file_get_contents($tmpFile->getPath());
             $this->app = $this->apps[$this->app];
         }
 
-        if (!$this->app){
-            foreach($this->apps as $name => $app){
+        if (!$this->app) {
+            foreach ($this->apps as $name => $app) {
                 if ($name[0] == '.') continue;
 
                 $this->app = $app;
@@ -88,13 +95,13 @@ class RegenixConsole extends ConsoleApplication {
             if (!$this->app)
                 $this->app = current($this->apps);
 
-            if ($this->app){
+            if ($this->app) {
                 $tmpFile->getParentFile()->mkdirs();
                 file_put_contents($tmpFile->getPath(), $this->app->getName());
             }
         }
 
-        if ($this->app){
+        if ($this->app) {
             $this->app->config->setEnv($this->app->config->getString('app.mode', 'dev'));
             ClassScanner::addClassPath($this->app->getSrcPath());
             ClassScanner::addClassPath($this->app->getTestPath());
@@ -103,10 +110,11 @@ class RegenixConsole extends ConsoleApplication {
         }
     }
 
-    public static function __shutdownConsole(){
+    public static function __shutdownConsole()
+    {
         $error = error_get_last();
-        if ($error){
-            switch($error['type']){
+        if ($error) {
+            switch ($error['type']) {
                 case E_ERROR:
                 case E_CORE_ERROR:
                 case E_COMPILE_ERROR:
@@ -120,8 +128,9 @@ class RegenixConsole extends ConsoleApplication {
 
                     break;
                 }
-                default: {
-                return;
+                default:
+                {
+                    return;
                 }
             }
             echo "\n    Exit code: " . $error['type'];

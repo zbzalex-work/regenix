@@ -1,9 +1,11 @@
 <?php
+
 namespace regenix\frontend;
 
 use regenix\lang\File;
 
-abstract class Language {
+abstract class Language
+{
 
     const type = __CLASS__;
 
@@ -13,18 +15,22 @@ abstract class Language {
     /**
      * @param FrontendManager $manager
      */
-    public function __construct(FrontendManager $manager){
+    public function __construct(FrontendManager $manager)
+    {
         $this->manager = $manager;
     }
 
     abstract public function getName();
+
     abstract public function getExtension();
+
     abstract public function getHtmlInsert($path, array $arguments = array());
 
     /**
      * @return bool
      */
-    public function isMonolithic(){
+    public function isMonolithic()
+    {
         return false;
     }
 
@@ -33,7 +39,8 @@ abstract class Language {
      * @param File $file
      * @return File
      */
-    public function getOutFile(File $file){
+    public function getOutFile(File $file)
+    {
         return $file;
     }
 
@@ -41,5 +48,7 @@ abstract class Language {
      * @param File $file
      * @param File $outFile
      */
-    public function processing(File $file, File $outFile){}
+    public function processing(File $file, File $outFile)
+    {
+    }
 }

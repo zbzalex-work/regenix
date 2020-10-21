@@ -1,4 +1,5 @@
 <?php
+
 namespace regenix\core;
 
 use regenix\core\AbstractGlobalBootstrap;
@@ -27,7 +28,8 @@ use regenix\mvc\route\RouterConfiguration;
 use regenix\mvc\template\BaseTemplate;
 use regenix\mvc\template\TemplateLoader;
 
-final class Regenix {
+final class Regenix
+{
 
     const type = __CLASS__;
 
@@ -67,13 +69,16 @@ final class Regenix {
     private static $bootstrap = null;
 
     // Util class
-    private function __construct(){}
+    private function __construct()
+    {
+    }
 
     /**
      * Get current version of regenix framework
      * @return string
      */
-    public static function getVersion(){
+    public static function getVersion()
+    {
         return '0.7';
     }
 
@@ -81,7 +86,8 @@ final class Regenix {
      * Get ip of current server
      * @return mixed
      */
-    public static function getServerAddr(){
+    public static function getServerAddr()
+    {
         return $_SERVER['SERVER_ADDR'];
     }
 
@@ -90,7 +96,8 @@ final class Regenix {
      * @param bool $traceLog
      * @return array
      */
-    public static function getDebugInfo($traceLog = false){
+    public static function getDebugInfo($traceLog = false)
+    {
         $result = array(
             'time' => (microtime(true) - self::$startTime) * 1000,
             'memory' => memory_get_usage() - self::$startMemory,
@@ -105,22 +112,25 @@ final class Regenix {
     /**
      * @return mixed
      */
-    public static function getLastTrace(){
+    public static function getLastTrace()
+    {
         return end(self::$profileLog);
     }
 
     /**
      * Require Build script of Regenix
      */
-    public static function requireBuild(){
+    public static function requireBuild()
+    {
         self::$requireBuild = true;
     }
 
-    public static function init($rootDir, $inWeb = true){
+    public static function init($rootDir, $inWeb = true)
+    {
         ini_set('display_errors', 'Off');
         error_reporting(0);
 
-        self::$startTime   = self::$traceTime = microtime(true);
+        self::$startTime = self::$traceTime = microtime(true);
         self::$startMemory = self::$traceMemory = memory_get_usage();
 
         self::trace('Start init core');
@@ -142,18 +152,18 @@ final class Regenix {
 
         // register class loader
         ClassScanner::init($rootDir, array(REGENIX_ROOT));
-        if (self::$requireBuild){
+        if (self::$requireBuild) {
             $file = SYSTEM_CACHE_TMP_DIR . '/RegenixBuild.php';
             include $file;
         }
 
         self::trace('Add class path of framework done.');
 
-        if ($inWeb){
+        if ($inWeb) {
             if (REGENIX_DEBUG)
                 SystemFileCache::getTempDirectory();
 
-            if (file_exists($globalFile = Application::getApplicationsPath() . '/GlobalBootstrap.php')){
+            if (file_exists($globalFile = Application::getApplicationsPath() . '/GlobalBootstrap.php')) {
                 require $globalFile;
                 $nameClass = '\\GlobalBootstrap';
                 self::$bootstrap = new $nameClass();
@@ -164,11 +174,11 @@ final class Regenix {
             self::_registerTriggers();
 
             $done = false;
-            if (REGENIX_STAT_OFF){
+            if (REGENIX_STAT_OFF) {
                 $done = self::_registerCurrentAppFromCache();
             }
 
-            if (!$done){
+            if (!$done) {
                 self::_registerApps();
                 self::trace('Register apps finish.');
 
@@ -201,17 +211,18 @@ final class Regenix {
      * @param $rootDir
      * @return Application
      */
-    public static function initWeb($rootDir){
+    public static function initWeb($rootDir)
+    {
         try {
             self::init($rootDir);
 
             $app = Regenix::app();
             $request = DI::getInstance(Request::type);
-            $request->setBasePath( $app->getUriPath() );
+            $request->setBasePath($app->getUriPath());
 
             self::processRequest($app, $request);
             return $app;
-        } catch (\Exception $e){
+        } catch (\Exception $e) {
             if (self::$bootstrap)
                 self::$bootstrap->onException($e);
 
@@ -224,8 +235,9 @@ final class Regenix {
      * @param $path
      * @throws CoreException
      */
-    public static function addExternalApp($path){
-        if (self::$startTime){
+    public static function addExternalApp($path)
+    {
+        if (self::$startTime) {
             throw new CoreException('Method addExternalApp() should be called before initialization of the framework');
         }
         $path = str_replace('\\', '/', $path);
@@ -242,7 +254,8 @@ final class Regenix {
      * Get current application
      * @return Application
      */
-    public static function app(){
+    public static function app()
+    {
         return Application::current();
     }
 
@@ -250,8 +263,9 @@ final class Regenix {
      * Write trace log
      * @param $message
      */
-    public static function trace($message){
-        if (REGENIX_DEBUG === true || IS_DEV === true){
+    public static function trace($message)
+    {
+        if (REGENIX_DEBUG === true || IS_DEV === true) {
             $newIncludes = array_slice(get_included_files(), sizeof(self::$traceIncludes));
 
             self::$profileLog[] =
@@ -265,28 +279,30 @@ final class Regenix {
                 );
 
             self::$traceIncludes = get_included_files();
-            self::$traceTime   = microtime(true);
+            self::$traceTime = microtime(true);
             self::$traceMemory = memory_get_usage();
 
-        } else if (!self::$traceTime){
-            self::$traceTime   = microtime(true);
+        } else if (!self::$traceTime) {
+            self::$traceTime = microtime(true);
             self::$traceMemory = memory_get_usage();
         }
     }
 
-    private static function _registerTriggers(){
+    private static function _registerTriggers()
+    {
         SDK::registerTrigger('beforeRequest');
         SDK::registerTrigger('afterRequest');
         SDK::registerTrigger('finallyRequest');
         SDK::registerTrigger('registerTemplateEngine');
     }
 
-    private static function _deployZip($zipFile){
-        $name   = basename($zipFile, '.zip');
+    private static function _deployZip($zipFile)
+    {
+        $name = basename($zipFile, '.zip');
         $appDir = Application::getApplicationsPath() . $name . '/';
 
         // check directory exists
-        if (file_exists($appDir)){
+        if (file_exists($appDir)) {
             $dir = new File($appDir);
             $dir->delete();
             $dir->mkdirs();
@@ -296,7 +312,7 @@ final class Regenix {
         if (self::$bootstrap)
             self::$bootstrap->onBeforeDeploy($zip, $appDir);
 
-        if ($zip->open($zipFile)){
+        if ($zip->open($zipFile)) {
             $result = $zip->extractTo($appDir);
             if (!$result)
                 throw new CoreException('The zip archive "%s" cannot be extracted to apps directory', basename($zipFile));
@@ -311,53 +327,56 @@ final class Regenix {
         $file->delete();
     }
 
-    private static function _deploy(){
+    private static function _deploy()
+    {
         foreach (glob(Application::getApplicationsPath() . "*.zip") as $zipFile) {
             self::_deployZip($zipFile);
         }
     }
 
-    private static function _registerApps(){
+    private static function _registerApps()
+    {
         $file = new File(Application::getApplicationsPath());
 
         if (self::$bootstrap)
             self::$bootstrap->onBeforeRegisterApps($file);
 
         $paths = array();
-        foreach(self::$externalApps as $path){
+        foreach (self::$externalApps as $path) {
             $paths[] = new File($path);
         }
 
         $key = '$rgx.' . sha1($file->getPath());
-        if (REGENIX_STAT_OFF){
+        if (REGENIX_STAT_OFF) {
             $files = SystemCache::get($key);
         } else {
             $files = SystemCache::getWithCheckFile($key, $file->getPath());
         }
 
-        if (!$files){
+        if (!$files) {
             $files = $file->find();
             SystemCache::setWithCheckFile($key, $files, $file->getPath());
         }
 
-        foreach($files as &$one){
+        foreach ($files as &$one) {
             $one = new File($one);
-        } unset($one);
+        }
+        unset($one);
 
         $paths = array_merge($paths, $files);
 
-        foreach($paths as $path){
+        foreach ($paths as $path) {
             /** @var $path File */
             $tmp = $path->getName();
-            if ($path->isDirectory()){
+            if ($path->isDirectory()) {
                 $name = $origin = $path->getName();
                 $i = 1;
-                while(isset(self::$apps[$name])){
+                while (isset(self::$apps[$name])) {
                     $name = $origin . '_' . $i;
                     $i++;
                 }
 
-                self::$apps[ $name ] = new Application($path);
+                self::$apps[$name] = new Application($path);
             }
         }
 
@@ -365,12 +384,13 @@ final class Regenix {
             self::$bootstrap->onAfterRegisterApps(self::$apps);
     }
 
-    private static function registerApplication(Application $app, URL $baseUrl){
+    private static function registerApplication(Application $app, URL $baseUrl)
+    {
         register_shutdown_function(array(Regenix::type, '__shutdown'), $app);
         if (self::$bootstrap)
             self::$bootstrap->onBeforeRegisterCurrentApp($app);
 
-        $app->setUriPath( $baseUrl );
+        $app->setUriPath($baseUrl);
         $app->register();
         DI::bind($app);
 
@@ -378,17 +398,18 @@ final class Regenix {
             self::$bootstrap->onAfterRegisterCurrentApp($app);
     }
 
-    private static function _registerCurrentAppFromCache(){
+    private static function _registerCurrentAppFromCache()
+    {
         /** @var $request Request */
         $request = DI::getInstance(Request::type);
         $hash = '$rgx.url.' . $request->getHash();
 
         $app = SystemCache::get($hash, true);
-        if (is_string($app)){
+        if (is_string($app)) {
             $app = new Application(new File(Application::getApplicationsPath() . $app));
             $app->register();
 
-            if ($app){
+            if ($app) {
                 $url = $app->findCurrentPath();
                 self::registerApplication($app, $url);
                 return true;
@@ -397,16 +418,17 @@ final class Regenix {
         return false;
     }
 
-    private static function _registerCurrentApp(){
+    private static function _registerCurrentApp()
+    {
         /**
          * @var Application $app
          */
-        foreach (self::$apps as $app){
+        foreach (self::$apps as $app) {
             $url = $app->findCurrentPath();
-            if ( $url ){
+            if ($url) {
                 Regenix::trace('Current app detected, register it ...');
 
-                if (REGENIX_STAT_OFF){
+                if (REGENIX_STAT_OFF) {
                     $request = DI::getInstance(Request::type);
                     $hash = '$rgx.url.' . $request->getHash();
                     SystemCache::setId('');
@@ -429,18 +451,19 @@ final class Regenix {
      * @throws CoreException
      * @throws \Exception|HttpException
      */
-    public static function processRequest(Application $app, Request $request){
+    public static function processRequest(Application $app, Request $request)
+    {
         $router = $app->router;
         $router->route($request);
         try {
-            if (!$router->action){
+            if (!$router->action) {
                 throw new HttpException(404, 'Not found');
             }
 
             // TODO optimize ?
             $tmp = explode('.', $router->action);
             $controllerClass = implode('\\', array_slice($tmp, 0, -1));
-            $actionMethod    = $tmp[ sizeof($tmp) - 1 ];
+            $actionMethod = $tmp[sizeof($tmp) - 1];
 
             /** @var $controller Controller */
             $controller = DI::getInstance($controllerClass);
@@ -448,18 +471,18 @@ final class Regenix {
             //$controller = new $controllerClass;
 
             $controller->actionMethod = $actionMethod;
-            $controller->routeArgs    = $router->args;
+            $controller->routeArgs = $router->args;
 
             try {
                 $reflection = new \ReflectionMethod($controller, $actionMethod);
                 $controller->actionMethodReflection = $reflection;
-            } catch(\ReflectionException $e){
+            } catch (\ReflectionException $e) {
                 throw new HttpException(404, $e->getMessage());
             }
 
             $declClass = $reflection->getDeclaringClass();
 
-            if ( $declClass->isAbstract() ){
+            if ($declClass->isAbstract()) {
                 throw new CoreException('Can`t use the "%s.%s()" as action method', $controllerClass, $actionMethod);
             }
 
@@ -476,13 +499,13 @@ final class Regenix {
             // if use return statement
             $controller->callReturn($return);
 
-        } catch (Result $result){
+        } catch (Result $result) {
             $response = $result->getResponse();
-        } catch (\Exception $e){
+        } catch (\Exception $e) {
 
-            if ( $controller ){
+            if ($controller) {
                 try {
-                    if ($e instanceof HttpException){
+                    if ($e instanceof HttpException) {
                         $controller->callHttpException($e);
                         $responseErr = $e->getTemplateResponse();
                     }
@@ -491,13 +514,13 @@ final class Regenix {
                     $controller->callException($e);
                     if ($app->bootstrap)
                         $app->bootstrap->onException($e);
-                } catch (Result $result){
+                } catch (Result $result) {
                     /** @var $responseErr Response */
                     $responseErr = $result->getResponse();
                 }
             }
 
-            if ( !$responseErr )
+            if (!$responseErr)
                 throw $e;
             else {
                 $response = $responseErr;
@@ -506,7 +529,7 @@ final class Regenix {
             }
         }
 
-        if ( !$responseErr ){
+        if (!$responseErr) {
             $controller->callAfter();
             SDK::trigger('afterRequest', array($controller));
         }
@@ -514,7 +537,7 @@ final class Regenix {
         if (self::$bootstrap)
             self::$bootstrap->onAfterRequest($request);
 
-        if ( !$response ){
+        if (!$response) {
             throw new CoreException('Unknown type of action `%s.%s()` result for response',
                 $controllerClass, $actionMethod);
         }
@@ -531,16 +554,23 @@ final class Regenix {
         return $response;
     }
 
-    private static function catchError($error, $logPath){
+    private static function catchError($error, $logPath)
+    {
         if (self::$bootstrap)
             self::$bootstrap->onError($error);
 
         $title = 'Fatal Error';
 
-        switch($error['type']){
-            case E_PARSE: $title = 'Parse Error'; break;
-            case E_COMPILE_ERROR: $title = 'Compile Error'; break;
-            case E_CORE_ERROR: $title = 'Core Error'; break;
+        switch ($error['type']) {
+            case E_PARSE:
+                $title = 'Parse Error';
+                break;
+            case E_COMPILE_ERROR:
+                $title = 'Compile Error';
+                break;
+            case E_CORE_ERROR:
+                $title = 'Core Error';
+                break;
         }
 
         $file = str_replace('\\', '/', $error['file']);
@@ -549,63 +579,64 @@ final class Regenix {
         $file = str_replace(str_replace('\\', '/', ROOT), '', $file);
 
         $source = null;
-        if (REGENIX_IS_DEV && file_exists($error['file']) && is_readable($error['file']) ){
+        if (REGENIX_IS_DEV && file_exists($error['file']) && is_readable($error['file'])) {
             $fp = fopen($error['file'], 'r');
-            $n  = 1;
+            $n = 1;
             $source = array();
-            while($line = fgets($fp, 4096)){
-                if ( $n > $error['line'] - 7 && $n < $error['line'] + 7 ){
+            while ($line = fgets($fp, 4096)) {
+                if ($n > $error['line'] - 7 && $n < $error['line'] + 7) {
                     $source[$n] = $line;
                 }
-                if ( $n > $error['line'] + 7 )
+                if ($n > $error['line'] + 7)
                     break;
                 $n++;
             }
         }
 
         $hash = substr(md5(rand()), 12);
-        if ($logPath){
+        if ($logPath) {
             $can = true;
             if (!is_dir($logPath))
                 $can = mkdir($logPath, 0777, true);
 
-            if ($can){
+            if ($can) {
                 $fp = fopen($logPath . 'fail.log', 'a+');
                 $time = date("[Y/M/d H:i:s]");
-                fwrite($fp,  "[$hash]$time" . PHP_EOL . "($title): $error[message]" . PHP_EOL);
-                fwrite($fp, $file . ' (' . $error['line'] . ')'.PHP_EOL . PHP_EOL);
+                fwrite($fp, "[$hash]$time" . PHP_EOL . "($title): $error[message]" . PHP_EOL);
+                fwrite($fp, $file . ' (' . $error['line'] . ')' . PHP_EOL . PHP_EOL);
                 fclose($fp);
             }
         }
         include REGENIX_ROOT . 'views/system/errors/fatal.phtml';
     }
 
-    private static function catchAny(\Exception $e){
+    private static function catchAny(\Exception $e)
+    {
         $app = Regenix::app();
-        if ($app && $app->bootstrap){
+        if ($app && $app->bootstrap) {
             try {
                 $app->bootstrap->onException($e);
-            } catch (Result $e){
+            } catch (Result $e) {
                 $e->getResponse()->send();
                 return;
             }
         }
 
-        if ( $e instanceof HttpException ){
+        if ($e instanceof HttpException) {
             $e->getTemplateResponse()->send();
             return;
         }
 
 
         $stack = CoreException::findAppStack($e);
-        if ($stack === null && REGENIX_DEBUG){
+        if ($stack === null && REGENIX_DEBUG) {
             $stack = current($e->getTrace());
         }
-        $info  = new \ReflectionClass($e);
+        $info = new \ReflectionClass($e);
 
         $description = $e->getMessage();
         $title = $info->getShortName();
-        if ($e instanceof CoreException){
+        if ($e instanceof CoreException) {
             $line = $e->getSourceLine();
             if ($line !== null)
                 $stack['line'] = $line;
@@ -621,23 +652,23 @@ final class Regenix {
                 $title = $value;
         }
 
-        if ($stack){
+        if ($stack) {
             $file = str_replace('\\', '/', $stack['file']);
-            $stack['line']         = CoreException::getErrorLine($file, $stack['line']);
+            $stack['line'] = CoreException::getErrorLine($file, $stack['line']);
             $file = $stack['file'] = CoreException::getErrorFile($file);
 
             $file = str_replace(str_replace('\\', '/', ROOT), '', $file);
 
             $source = null;
-            if (file_exists($stack['file']) && is_readable($stack['file']) ){
+            if (file_exists($stack['file']) && is_readable($stack['file'])) {
                 $fp = fopen($stack['file'], 'r');
-                $n  = 1;
+                $n = 1;
                 $source = array();
-                while($line = fgets($fp, 4096)){
-                    if ( $n > $stack['line'] - 7 && $n < $stack['line'] + 7 ){
+                while ($line = fgets($fp, 4096)) {
+                    if ($n > $stack['line'] - 7 && $n < $stack['line'] + 7) {
                         $source[$n] = $line;
                     }
-                    if ( $n > $stack['line'] + 7 )
+                    if ($n > $stack['line'] + 7)
                         break;
                     $n++;
                 }
@@ -669,61 +700,67 @@ final class Regenix {
         $response->send();
     }
 
-    public static function catchException(\Exception $e){
+    public static function catchException(\Exception $e)
+    {
         self::catchAny($e);
     }
 
-    public static function getFrameworkPath(){
+    public static function getFrameworkPath()
+    {
         return REGENIX_ROOT;
     }
 
-    public static function getTempPath(){
+    public static function getTempPath()
+    {
         return self::$rootTempPath . self::$tempPath;
     }
 
     /**
      * @return bool
      */
-    public static function isCLI(){
+    public static function isCLI()
+    {
         return IS_CLI;
     }
 
-    public static function __errorHandler($errno, $errstr, $errfile, $errline){
-        if ($errno === E_RECOVERABLE_ERROR){
+    public static function __errorHandler($errno, $errstr, $errfile, $errline)
+    {
+        if ($errno === E_RECOVERABLE_ERROR) {
             throw new WrappedException(new CoreException($errstr), new File($errfile), $errline);
         }
 
-        if ( APP_MODE_STRICT ){
-            $app =  Regenix::app();
+        if (APP_MODE_STRICT) {
+            $app = Regenix::app();
             $errfile = str_replace('\\', '/', $errfile);
 
             // only for src sources
-            if (!$app || String::startsWith($errfile, $app->getPath())){
+            if (!$app || String::startsWith($errfile, $app->getPath())) {
 
-                if ( $errno === E_DEPRECATED
+                if ($errno === E_DEPRECATED
                     || $errno === E_USER_DEPRECATED
                     || $errno === E_WARNING
-                    || $errno === E_STRICT){
+                    || $errno === E_STRICT) {
 
                     throw new CoreStrictException($errstr);
                 }
 
                 // ignore tmp dir
-                if (!$app || String::startsWith($errfile, $app->getTempPath()) )
+                if (!$app || String::startsWith($errfile, $app->getTempPath()))
                     return false;
 
                 if (String::startsWith($errstr, 'Undefined variable:')
-                    || String::startsWith($errstr, 'Use of undefined constant')){
+                    || String::startsWith($errstr, 'Use of undefined constant')) {
                     throw new CoreStrictException($errstr);
                 }
             }
         }
     }
 
-    public static function __shutdown(Application $app){
+    public static function __shutdown(Application $app)
+    {
         $error = error_get_last();
-        if ($error){
-            switch($error['type']){
+        if ($error) {
+            switch ($error['type']) {
                 case E_ERROR:
                 case E_CORE_ERROR:
                 case E_COMPILE_ERROR:
@@ -732,7 +769,7 @@ final class Regenix {
                 case 4096: // Catchable fatal error
                 {
                     self::catchError($error,
-                        $app->config->getBoolean('logger.fatal.enable',true)
+                        $app->config->getBoolean('logger.fatal.enable', true)
                             ? $app->getLogPath()
                             : false);
 
@@ -749,10 +786,11 @@ final class Regenix {
     }
 
     /*** utils ***/
-    public static function setTempPath($dir){
+    public static function setTempPath($dir)
+    {
         $path = self::$rootTempPath . $dir;
-        if ( !is_dir($path) ){
-            if ( !mkdir($path, 0777, true) ){
+        if (!is_dir($path)) {
+            if (!mkdir($path, 0777, true)) {
                 echo 'Unable to create temp directory `' . $path . '`';
                 exit(1);
             }

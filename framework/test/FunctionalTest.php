@@ -1,4 +1,5 @@
 <?php
+
 namespace regenix\test;
 
 use regenix\lang\CoreException;
@@ -6,12 +7,21 @@ use regenix\libs\ws\WS;
 use regenix\libs\ws\WSResponse;
 use regenix\mvc\http\URL;
 
-class FunctionalTest extends UnitTest {
-
+class FunctionalTest extends UnitTest
+{
+    /**
+     * @var
+     */
     private $lastMethod;
 
+    /**
+     * @var
+     */
     private $lastData;
 
+    /**
+     * @var
+     */
     private $lastUrl;
 
     /** @var string */
@@ -23,7 +33,8 @@ class FunctionalTest extends UnitTest {
     /** @var array */
     private $headers = array();
 
-    protected function setBaseUrl($url){
+    protected function setBaseUrl($url)
+    {
         $url = new URL($url);
         $this->baseUrl = $url->getProtocol() . '://' . $url->getHost() . ':' . $url->getPort() . $url->getPath();
         if ($query = $url->getQuery())
@@ -35,7 +46,8 @@ class FunctionalTest extends UnitTest {
      * @param $value
      * @return $this
      */
-    protected function setHeader($name, $value){
+    protected function setHeader($name, $value)
+    {
         $this->headers[$name] = $value;
         return $this;
     }
@@ -43,17 +55,23 @@ class FunctionalTest extends UnitTest {
     /**
      * @return $this
      */
-    protected function clearHeaders(){
+    protected function clearHeaders()
+    {
         $this->headers = array();
         return $this;
     }
 
-    protected function RETRY(){
-        switch($this->lastMethod){
-            case 'POST': return $this->POST($this->lastUrl, $this->lastData);
-            case 'POST_JSON': return $this->POST_JSON($this->lastUrl, $this->lastData);
-            case 'GET': return $this->GET($this->lastUrl);
-            default: {
+    protected function RETRY()
+    {
+        switch ($this->lastMethod) {
+            case 'POST':
+                return $this->POST($this->lastUrl, $this->lastData);
+            case 'POST_JSON':
+                return $this->POST_JSON($this->lastUrl, $this->lastData);
+            case 'GET':
+                return $this->GET($this->lastUrl);
+            default:
+            {
                 throw new CoreException('Cannot retry empty request, requests are not occur yet');
             }
         }
@@ -64,7 +82,8 @@ class FunctionalTest extends UnitTest {
      * @param array $data
      * @return WSResponse
      */
-    protected function POST($path, array $data = array()){
+    protected function POST($path, array $data = array())
+    {
         $this->lastMethod = 'POST';
         $this->lastUrl = $path;
         $this->lastData = $data;
@@ -76,7 +95,8 @@ class FunctionalTest extends UnitTest {
      * @param $data
      * @return WSResponse
      */
-    protected function POST_JSON($path, $data){
+    protected function POST_JSON($path, $data)
+    {
         $this->lastMethod = 'POST_JSON';
         $this->lastUrl = $path;
         $this->lastData = $data;
@@ -90,7 +110,8 @@ class FunctionalTest extends UnitTest {
      * @param $path
      * @return WSResponse
      */
-    protected function GET($path){
+    protected function GET($path)
+    {
         $this->lastMethod = 'GET';
         $this->lastUrl = $path;
         $this->lastData = null;
@@ -101,7 +122,8 @@ class FunctionalTest extends UnitTest {
     /**
      * @return WSResponse
      */
-    protected function getResponse(){
+    protected function getResponse()
+    {
         return $this->response;
     }
 
@@ -110,7 +132,8 @@ class FunctionalTest extends UnitTest {
      * @param WSResponse $response
      * @return $this
      */
-    protected function assertContent($content, WSResponse $response = null){
+    protected function assertContent($content, WSResponse $response = null)
+    {
         $response = $response ? $response : $this->response;
         $this->assertWrite($response && $content === $response->asString(), 'Check content');
         return $this;
@@ -122,20 +145,21 @@ class FunctionalTest extends UnitTest {
      * @return $this
      * @throws \regenix\lang\CoreException
      */
-    protected function assertJsonContent($json = array(), WSResponse $response = null){
+    protected function assertJsonContent($json = array(), WSResponse $response = null)
+    {
         $response = $response ? $response : $this->response;
         try {
             if (!$response)
                 throw new CoreException('');
 
             $result = $response->asJson();
-            foreach($json as $key => $value){
+            foreach ($json as $key => $value) {
                 if ($value !== gettype($result[$key]))
                     $this->assertWrite(false, 'Check json content');
             }
 
             $this->assertWrite(true, 'Check json content');
-        } catch (CoreException $e){
+        } catch (CoreException $e) {
             $this->assertWrite(false, 'Check json content');
         }
         return $this;
@@ -146,7 +170,8 @@ class FunctionalTest extends UnitTest {
      * @param WSResponse $response
      * @return $this
      */
-    protected function assertContentType($contentType, WSResponse $response = null){
+    protected function assertContentType($contentType, WSResponse $response = null)
+    {
         $response = $response ? $response : $this->response;
         $this->assertWrite($response && $response->contentType === $contentType, 'Check content type');
         return $this;
@@ -157,7 +182,8 @@ class FunctionalTest extends UnitTest {
      * @param WSResponse $response
      * @return $this
      */
-    protected function assertStatus($status, WSResponse $response = null){
+    protected function assertStatus($status, WSResponse $response = null)
+    {
         $response = $response ? $response : $this->response;
         $this->assertWrite($response && (int)$status === $response->status, 'Check http status = ' . (int)$status);
         return $this;
@@ -167,7 +193,8 @@ class FunctionalTest extends UnitTest {
      * @param WSResponse $response
      * @return $this
      */
-    protected function assertSuccess(WSResponse $response = null){
+    protected function assertSuccess(WSResponse $response = null)
+    {
         $response = $response ? $response : $this->response;
         $this->assertWrite($response && $response->isSuccess(), 'Check http success code = 2xx');
         return $this;
@@ -179,7 +206,8 @@ class FunctionalTest extends UnitTest {
      * @param WSResponse $response
      * @return $this
      */
-    protected function assertHeader($key, $value, WSResponse $response = null){
+    protected function assertHeader($key, $value, WSResponse $response = null)
+    {
         $key = strtolower($key);
         $response = $response ? $response : $this->response;
         $this->assertWrite($response && $response->headers->get($key) == $value, 'Check http header value');
@@ -191,7 +219,8 @@ class FunctionalTest extends UnitTest {
      * @param WSResponse $response
      * @return $this
      */
-    protected function assertUrl($url, WSResponse $response = null){
+    protected function assertUrl($url, WSResponse $response = null)
+    {
         $response = $response ? $response : $this->response;
         $this->assertWrite($response && $response->url === $url, 'Check result url');
         return $this;
@@ -201,7 +230,8 @@ class FunctionalTest extends UnitTest {
      * @param WSResponse $response
      * @return $this
      */
-    protected function assertRedirect(WSResponse $response = null){
+    protected function assertRedirect(WSResponse $response = null)
+    {
         $response = $response ? $response : $this->response;
         $this->assertWrite($response && $response->redirectCount > 0, 'Check redirect exists');
         return $this;

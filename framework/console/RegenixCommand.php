@@ -1,4 +1,5 @@
 <?php
+
 namespace regenix\console;
 
 use Symfony\Component\Console\Command\Command;
@@ -12,7 +13,8 @@ use regenix\lang\String;
  * @package regenix\console
  * @method \regenix\console\RegenixConsole getApplication()
  */
-abstract class RegenixCommand extends Command {
+abstract class RegenixCommand extends Command
+{
     const type = __CLASS__;
 
     const CHECK_APP_LOADED = false;
@@ -23,7 +25,8 @@ abstract class RegenixCommand extends Command {
     /** @var OutputInterface */
     protected $output;
 
-    protected function initialize(InputInterface $input, OutputInterface $output){
+    protected function initialize(InputInterface $input, OutputInterface $output)
+    {
         $this->input = $input;
         $this->output = $output;
         $this->writeln();
@@ -31,7 +34,8 @@ abstract class RegenixCommand extends Command {
             $this->checkApplicationLoaded();
     }
 
-    protected function checkApplicationLoaded(){
+    protected function checkApplicationLoaded()
+    {
         $console = $this->getApplication();
         if (!$console->app)
             throw new CoreException(
@@ -39,12 +43,14 @@ abstract class RegenixCommand extends Command {
             );
     }
 
-    protected function writeln($message = ''){
+    protected function writeln($message = '')
+    {
         $this->output->writeln('    ' . String::formatArgs($message, array_slice(func_get_args(), 1)));
         return $this;
     }
 
-    protected function write($message){
+    protected function write($message)
+    {
         $this->output->write('    ' . String::formatArgs($message, array_slice(func_get_args(), 1)));
         return $this;
     }
